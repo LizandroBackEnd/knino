@@ -1,61 +1,167 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <img src="./public/logos/icon.png" width="200" alt="knino" />
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  <h1>K nino</h1>
 
-## About Laravel
+  <p>Sistema de procesamiento de transacciones</p>
+  <a href="" target="_blank">Live Preview</a>
+  <span>&nbsp;•&nbsp;</span>
+  <a href="#getting-started">Getting Started</a>
+</div>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<div align="center">
+  <img alt="Laravel Badge" src="https://img.shields.io/badge/Laravel-FF2D20?logo=laravel&logoColor=fff&style=flat" />
+  <img alt="Bun Badge" src="https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=fff&style=flat" />
+  <img alt="Docker Badge" src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=flat" />
+  <img alt="PostgreSQL Badge" src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=fff&style=flat" />
+  <img alt="JWT Badge" src="https://img.shields.io/badge/JWT-000000?logo=json-web-tokens&logoColor=fff&style=flat" />
+  <img alt="Tailwind CSS Badge" src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=fff&style=flat" />
+  <img alt="Eloquent Badge" src="https://img.shields.io/badge/Eloquent-FF2D20?logo=laravel&logoColor=fff&style=flat" />
+</div>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# 📝 Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Features
 
-## Learning Laravel
+- 🔒 Secure authentication with Google
+- CRUD for clients, pets, services and employees
+- Upload Images to cloudinary
+- ⚡ Fast, responsive UI with Tailwind CSS
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 🛠️ Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- [**Laravel**](https://laravel.com/) - The PHP framework for web artisans. Elegant, expressive syntax for rapid development.
+- [**PHP**](https://www.php.net/) - A popular general-purpose scripting language that is especially suited to web development.
+- [**PostgreSQL**](https://www.postgresql.org/) - Systems of manager for object-relational database.
+- [**Tailwind**](https://tailwindcss.com/) - A utility-first CSS framework for rapidly building custom designs.
+- **Eloquent** – Modern ORM for type-safe database access
+- **JWT** – Secure authentication and user management
+- **Bun** – Fast JavaScript runtime and package manager
+- [**Tabler Icons**](https://tabler.io/) - A collection of icons used.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 🎨 Live Preview
 
-## Laravel Sponsors
+Curious? Explore the live site: <http://localhost:5173/>
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 🚀 Getting Started for local environment
 
-### Premium Partners
+Set up the project locally in a few simple steps:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 1. Clone the repository
 
-## Contributing
+```bash
+git clone https://github.com/angelcruz07/CodeQuest2025.git
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+cd CodeQuest2025
+```
 
-## Code of Conduct
+### 2. Install dependencies
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> _We use [bun](https://bun.sh) for blazing-fast installs._
 
-## Security Vulnerabilities
+```bash
+bun i
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Configure environment variables
 
-## License
+Copy the template and fill in your secrets:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> [!IMPORTANT]
+> You need Discord credentials, and Cloudinary Credentials
+> for running this project
+
+```bash
+cp .env.template .env
+```
+
+> [!WARNING]
+> Check if your credentials already exist
+
+### 4. Start the database
+
+> [!NOTE]
+> Docker is required for local database setup.
+
+```bash
+docker compose up -d
+```
+
+### 5. Run database migrations
+
+```bash
+bunx prisma migrate dev
+```
+
+### 6. Seed the database
+
+```bash
+bun seed
+```
+
+### 7. Cloudinary Setup
+
+Devtalles team you can use out cloudinary credentials
+there are in our discord channel #code-verse.
+
+If you prefer to use your own account, you can create a free account
+and create a foldeer named `codequest25/posts` to store the images.
+
+> [!IMPORTANT]
+> If you use your own account, no forget create the folder "codequest25/posts"
+
+### 8. Discord Auth Setup
+
+Devtalles team you can use out discord credentials
+there are in our discord channel #code-verse.
+
+If you prefer to use your own account, follow these steps:
+create a new application in the Discord Developer Portal, and add the following URL to the OAuth2 Redirects:
+
+```bash
+# For local development
+http://localhost:4321/api/auth/callback/discord
+
+# Production
+https://yourdomain.com/api/auth/callback/discord
+```
+
+### 9. Start the development server
+
+```bash
+bun dev
+```
+
+Visit [http://localhost:4321](http://localhost:4321/) to see DevTalles Community Blog in action.
+
+### 8. Set up admin access
+
+> [!NOTE]
+> This step is optional and only required if you want to access admin features.
+
+To access the dashboard and admin features:
+
+1. **Create a user account** by registering through the application
+2. **Ensure Docker container is running** (from step 4)
+3. **Connect to the database** using a database client like:
+   - [TablePlus](https://tableplus.com/)
+   - [DBeaver](https://dbeaver.io/)
+   - [pgAdmin](https://www.pgadmin.org/)
+   - Or any PostgreSQL client of your choice
+
+4. **Update user role**:
+   - Connect to your PostgreSQL database
+   - Navigate to the `User` table
+   - Find your user record
+   - Change the `role` field from `user` to `admin`
+   - Save the changes
+
+5. **Refresh the application** and log in to access admin features
+
+Happy coding! 🚀
+
+## Contributors
+
+- [Angel - Frontend](https://github.com/angelcruz07)
+- [Lizandro - Backend](https://github.com/LizandroBackEnd)
+- [Arif - Frontend](https://github.com/Ariff-dev)
