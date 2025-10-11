@@ -19,149 +19,86 @@
   <img alt="Eloquent Badge" src="https://img.shields.io/badge/Eloquent-FF2D20?logo=laravel&logoColor=fff&style=flat" />
 </div>
 
-# 📝 Overview
+# 📝 Resumen
 
-## Features
+## Características
 
-- 🔒 Secure authentication with Google
-- CRUD for clients, pets, services and employees
-- Upload Images to cloudinary
-- ⚡ Fast, responsive UI with Tailwind CSS
+- 🔒 Autenticación segura con Google mediante roles
+- CRUD para clientes, mascotas, servicios y empleados
+- Subida de imágenes a Cloudinary
+- ⚡ Interfaz rápida y responsive con Tailwind CSS
 
-# 🛠️ Tech Stack
+# 🛠️ Tecnologías
 
-- [**Laravel**](https://laravel.com/) - The PHP framework for web artisans. Elegant, expressive syntax for rapid development.
-- [**PHP**](https://www.php.net/) - A popular general-purpose scripting language that is especially suited to web development.
-- [**PostgreSQL**](https://www.postgresql.org/) - Systems of manager for object-relational database.
-- [**Tailwind**](https://tailwindcss.com/) - A utility-first CSS framework for rapidly building custom designs.
-- **Eloquent** – Modern ORM for type-safe database access
-- **JWT** – Secure authentication and user management
-- **Bun** – Fast JavaScript runtime and package manager
-- [**Tabler Icons**](https://tabler.io/) - A collection of icons used.
+- [**Laravel**](https://laravel.com/) - El framework PHP para artesanos web. Sintaxis elegante y expresiva para desarrollo rápido.
+- [**PHP**](https://www.php.net/) - Un lenguaje de scripting de propósito general, especialmente adecuado para desarrollo web.
+- [**PostgreSQL**](https://www.postgresql.org/) - Sistema de gestión de bases de datos relacionales.
+- [**Tailwind**](https://tailwindcss.com/) - Un framework CSS utility-first para construir diseños rápidamente.
+- **Eloquent** – ORM de Laravel para acceso a datos de forma elegante.
+- **JWT** – Autenticación basada en JSON Web Tokens.
+- **Bun** – Runtime y gestor de paquetes JavaScript rápido.
+- [**Tabler Icons**](https://tabler.io/) - Colección de iconos usada.
 
-# 🎨 Live Preview
+# 🎨 Vista previa
 
-Curious? Explore the live site: <http://localhost:5173/>
+¿Curioso? Explora el sitio en vivo: <http://localhost:5173/>
 
-# 🚀 Getting Started for local environment
+# 🚀 Cómo ejecutar el proyecto localmente
 
-Set up the project locally in a few simple steps:
+Configura el proyecto localmente en unos pocos pasos:
 
-### 1. Clone the repository
+### 1. Clona el repositorio
 
 ```bash
-git clone https://github.com/angelcruz07/CodeQuest2025.git
+git clone https://github.com/LizandroBackEnd/knino.git
 
-cd CodeQuest2025
+cd knino
 ```
 
-### 2. Install dependencies
+### 2. Instala dependencias
 
-> _We use [bun](https://bun.sh) for blazing-fast installs._
+> _Usamos [composer](https://getcomposer.org/)  y [bun] para instalaciones de paquetes en Laravel
+
+```bash
+composer install
+```
 
 ```bash
 bun i
 ```
 
-### 3. Configure environment variables
+### 3. Configura las variables de entorno
 
-Copy the template and fill in your secrets:
+Copia la plantilla y completa las secret keys:
 
 > [!IMPORTANT]
-> You need Discord credentials, and Cloudinary Credentials
-> for running this project
+> Necesitas credenciales de jwt
+> para ejecutar este proyecto
 
 ```bash
 cp .env.template .env
 ```
 
-> [!WARNING]
-> Check if your credentials already exist
+Para poder generar la secret key para jwt usa el siguiente comando:
+```bash
+php artisan jwt:secret
+```
 
-### 4. Start the database
+
+> [!WARNING]
+> Verifica si tus credenciales ya existen
+
+### 4. Inicia la base de datos
 
 > [!NOTE]
-> Docker is required for local database setup.
+> Docker es requerido para configurar la base de datos localmente.
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Run database migrations
+### 5. Inicia el servidor de desarrollo
 
 ```bash
-bunx prisma migrate dev
+php artisan serve
 ```
-
-### 6. Seed the database
-
-```bash
-bun seed
-```
-
-### 7. Cloudinary Setup
-
-Devtalles team you can use out cloudinary credentials
-there are in our discord channel #code-verse.
-
-If you prefer to use your own account, you can create a free account
-and create a foldeer named `codequest25/posts` to store the images.
-
-> [!IMPORTANT]
-> If you use your own account, no forget create the folder "codequest25/posts"
-
-### 8. Discord Auth Setup
-
-Devtalles team you can use out discord credentials
-there are in our discord channel #code-verse.
-
-If you prefer to use your own account, follow these steps:
-create a new application in the Discord Developer Portal, and add the following URL to the OAuth2 Redirects:
-
-```bash
-# For local development
-http://localhost:4321/api/auth/callback/discord
-
-# Production
-https://yourdomain.com/api/auth/callback/discord
-```
-
-### 9. Start the development server
-
-```bash
-bun dev
-```
-
-Visit [http://localhost:4321](http://localhost:4321/) to see DevTalles Community Blog in action.
-
-### 8. Set up admin access
-
-> [!NOTE]
-> This step is optional and only required if you want to access admin features.
-
-To access the dashboard and admin features:
-
-1. **Create a user account** by registering through the application
-2. **Ensure Docker container is running** (from step 4)
-3. **Connect to the database** using a database client like:
-   - [TablePlus](https://tableplus.com/)
-   - [DBeaver](https://dbeaver.io/)
-   - [pgAdmin](https://www.pgadmin.org/)
-   - Or any PostgreSQL client of your choice
-
-4. **Update user role**:
-   - Connect to your PostgreSQL database
-   - Navigate to the `User` table
-   - Find your user record
-   - Change the `role` field from `user` to `admin`
-   - Save the changes
-
-5. **Refresh the application** and log in to access admin features
-
-Happy coding! 🚀
-
-## Contributors
-
-- [Angel - Frontend](https://github.com/angelcruz07)
-- [Lizandro - Backend](https://github.com/LizandroBackEnd)
-- [Arif - Frontend](https://github.com/Ariff-dev)
