@@ -57,11 +57,15 @@ cd knino
 
 ### 2. Instala dependencias
 
-> _Usamos [composer](https://getcomposer.org/)  y [bun] para instalaciones de paquetes en Laravel
+> _Usamos [composer](https://getcomposer.org/) para las instalaciones de paquetes en Laravel
 
 ```bash
 composer install
 ```
+> [!IMPORTANT]
+> Necesitas tener instalado [nodejs](https://getcomposer.org/) para poder hacer uso de bun
+> Despues de haber instalado nodejs se debe de instalar [bun]()
+> Por ultimo ejecutas: 
 
 ```bash
 bun i
@@ -97,8 +101,21 @@ php artisan jwt:secret
 docker compose up -d
 ```
 
-### 5. Inicia el servidor de desarrollo
+### 5. Ejecuta las migraciones
+Antes de hacer funcionar el proyecto es necesario ejecutar las migraciones y esto lo hacemos con:
+
+
+### 6. Inicia el servidor de desarrollo
+```bash
+php artisan:migrations
+```
 
 ```bash
 php artisan serve
 ```
+
+### Posibles errores:
+
+1. Windows
+
+2. Linux  
