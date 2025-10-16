@@ -12,15 +12,15 @@
       <label class="block text-sm font-medium text-gray-700">{{ $f['label'] ?? ucfirst($f['name']) }} @if(!empty($f['required'])) * @endif</label>
       @php $value = old($f['name'], $f['value'] ?? '') @endphp
       @if($f['type'] === 'textarea')
-        <textarea name="{{ $f['name'] }}" placeholder="{{ $f['placeholder'] ?? '' }}" class="mt-1 block w-full rounded-md border px-3 py-2">{{ $value }}</textarea>
+        <textarea name="{{ $f['name'] }}" placeholder="{{ $f['placeholder'] ?? '' }}" class="form-control mt-1 block w-full">{{ $value }}</textarea>
       @elseif($f['type'] === 'select')
-        <select name="{{ $f['name'] }}" class="mt-1 block w-full rounded-md border px-3 py-2">
+        <select name="{{ $f['name'] }}" class="form-control mt-1 block w-full">
           @foreach($f['options'] ?? [] as $optValue => $optLabel)
             <option value="{{ $optValue }}" {{ $optValue == $value ? 'selected' : '' }}>{{ $optLabel }}</option>
           @endforeach
         </select>
       @else
-        <input type="{{ $f['type'] ?? 'text' }}" name="{{ $f['name'] }}" value="{{ $value }}" placeholder="{{ $f['placeholder'] ?? '' }}" class="mt-1 block w-full rounded-md border px-3 py-2" @if(!empty($f['required'])) required @endif>
+        <input type="{{ $f['type'] ?? 'text' }}" name="{{ $f['name'] }}" value="{{ $value }}" placeholder="{{ $f['placeholder'] ?? '' }}" class="form-control mt-1 block w-full" @if(!empty($f['required'])) required @endif>
       @endif
       @if($errors->has($f['name']))
         <p class="text-sm text-red-600 mt-1">{{ $errors->first($f['name']) }}</p>
