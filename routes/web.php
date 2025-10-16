@@ -18,3 +18,7 @@ Route::get('/clients', function () {
 Route::get('/pets', function () {
     return view('dashboard.pets');
 })->name('mascotas');
+
+Route::get('/services', function () {
+    return view('dashboard.services');
+})->name('servicios');
