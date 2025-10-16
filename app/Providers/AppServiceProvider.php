@@ -25,5 +25,6 @@ class AppServiceProvider extends ServiceProvider
         // in the `shared` folder.
         Blade::component('shared.header', 'header');
         Blade::component('shared.sidebar', 'sidebar');
+    
     }
 }

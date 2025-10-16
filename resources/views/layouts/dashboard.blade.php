@@ -22,7 +22,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="min-h-screen bg-neutral text-white">
+<body class="min-h-screen bg-neutral">
   <div class="flex">
     <x-sidebar />
 

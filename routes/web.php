@@ -8,5 +8,9 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard' , function () {
-    return view('dashboard.dashboard');
+    return view('dashboard.admin');
 })->name('dashboard');
+
+Route::get('/clients', function () {
+    return view('dashboard.clients');
+})->name('clientes');
