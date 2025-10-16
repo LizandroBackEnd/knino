@@ -5,6 +5,11 @@ export function initFormModals() {
   const triggers = document.querySelectorAll('.js-open-form-modal');
   const openModal = (modal) => {
     if (!modal) return;
+    // Ensure element is displayed before manipulating classes so it doesn't flash
+    modal.style.display = 'grid';
+    // Force a reflow so the following class changes trigger transitions
+    // eslint-disable-next-line no-unused-expressions
+    modal.offsetHeight;
     modal.classList.remove('opacity-0', 'pointer-events-none');
     modal.classList.add('opacity-100');
     document.body.classList.add('overflow-hidden');
@@ -17,9 +22,17 @@ export function initFormModals() {
 
   const closeModal = (modal) => {
     if (!modal) return;
+    // Start fade-out
     modal.classList.add('opacity-0', 'pointer-events-none');
     modal.classList.remove('opacity-100');
     document.body.classList.remove('overflow-hidden');
+    // After transition ends, hide the element to avoid it flashing before JS runs
+    const onTransitionEnd = (e) => {
+      if (e.target !== modal) return;
+      modal.style.display = 'none';
+      modal.removeEventListener('transitionend', onTransitionEnd);
+    };
+    modal.addEventListener('transitionend', onTransitionEnd);
   };
 
   triggers.forEach(btn => {

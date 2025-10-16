@@ -1,5 +1,5 @@
 @props(['id' => 'modalForm', 'title' => 'Formulario'])
-<div id="{{ $id }}" class="modal-root fixed inset-0 z-50 grid place-items-center opacity-0 pointer-events-none transition-opacity duration-150">
+<div id="{{ $id }}" class="modal-root fixed inset-0 z-50 grid place-items-center opacity-0 pointer-events-none transition-opacity duration-150 js-modal-hidden" style="display: none;">
   <div class="modal-overlay absolute inset-0 bg-black/40 transition-opacity duration-150"></div>
 
   <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 p-6" role="dialog" aria-modal="true" aria-labelledby="{{ $id }}-title">
