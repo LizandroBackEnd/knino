@@ -22,3 +22,7 @@ Route::get('/pets', function () {
 Route::get('/services', function () {
     return view('dashboard.services');
 })->name('servicios');
+
+Route::get('/employees', function () {
+    return view('dashboard.employees');
+})->name('empleados');
