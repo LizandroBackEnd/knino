@@ -40,6 +40,9 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
+        'last_name_primary',
+        'last_name_secondary',
+        'phone',
         'role',
         'email',
         'password',
@@ -58,13 +61,24 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string,string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    /**
+     * Accessor for full name (convenience).
+     */
+    public function getFullNameAttribute(): string
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $parts = array_filter([
+            $this->name ?? null,
+            $this->last_name_primary ?? null,
+            $this->last_name_secondary ?? null,
+        ]);
+
+        return implode(' ', $parts);
     }
 }
