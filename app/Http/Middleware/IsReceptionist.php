@@ -16,7 +16,7 @@ class IsReceptionist
     public function handle(Request $request, Closure $next): Response
     {
         $user = auth('api')->user();
-        if ($user && $user->role === 'recepcionista') {
+        if ($user && $user->role === 'receptionist') {
             return $next($request);
         } else {
             return response()->json(['error' => 'Unauthorized. Receptionists only.'], 403);
