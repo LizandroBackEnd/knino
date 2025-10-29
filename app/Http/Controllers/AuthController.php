@@ -18,7 +18,6 @@ class AuthController extends Controller
             'last_name_primary' => 'required|string|max:255',
             'last_name_secondary' => 'nullable|string|max:255',
             'phone' => 'required|string|max:10',
-            'role' => 'required|string|in:admin,receptionist,veterinarian,user',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -32,7 +31,7 @@ class AuthController extends Controller
             'last_name_primary' => $request->last_name_primary,
             'last_name_secondary' => $request->last_name_secondary,
             'phone' => $request->phone,
-            'role' => $request->role,
+            'role' => 'user',
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);

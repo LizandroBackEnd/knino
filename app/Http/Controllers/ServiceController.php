@@ -88,5 +88,6 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Service not found'], 404);
         }
         $services->delete();
+        return response()->json(['message' => 'Service deleted successfully'], 200);
     }
 }

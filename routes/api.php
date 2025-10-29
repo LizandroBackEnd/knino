@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\EmployeesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Middleware\IsAdmin;
@@ -20,10 +21,17 @@ Route::middleware([IsAdmin::class])->group((function () {
     });
     Route::controller(ServiceController::class)->group(function () {
         Route::get('/services', 'getServices');
-        Route::get('/services/{id}', 'getService');
+        Route::get('/services/{id}', 'getServiceById');
         Route::post('/services', 'addService');
-        Route::put('/services/{id}', 'updateService');
-        Route::delete('/services/{id}', 'deleteService');
+        Route::put('/services/{id}', 'updateServiceById');
+        Route::delete('/services/{id}', 'deleteServiceById');
+    });
+    Route::controller(EmployeesController::class)->group(function () {
+        Route::get('/employees', 'getEmployees');
+        Route::get('/employee/{id}', 'getEmployeeById');
+        Route::post('/employees', 'addEmployee');
+        Route::patch('/employee/{id}', 'updateEmployeeById');
+        Route::delete('/employee/{id}', 'deleteEmployeeById');
     });
 }));
 
