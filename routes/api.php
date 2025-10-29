@@ -21,7 +21,7 @@ Route::middleware([IsAdmin::class])->group((function () {
     });
     Route::controller(ServiceController::class)->group(function () {
         Route::get('/services', 'getServices');
-        Route::get('/services/name/{name}', 'getServiceByName');
+        Route::get('/services/{name}', 'getServiceByName');
         Route::post('/services', 'addService');
         Route::put('/services/{id}', 'updateServiceById');
         Route::delete('/services/{id}', 'deleteServiceById');
