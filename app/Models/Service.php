@@ -15,4 +15,8 @@ class Service extends Model
         'price',
         'photo_url',
     ];
+
+    public function setNameAttribute($value) {
+        $this->attributes['name'] = strtoupper($value);
+    }
 }

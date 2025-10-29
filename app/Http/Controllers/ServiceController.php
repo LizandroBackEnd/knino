@@ -38,8 +38,8 @@ class ServiceController extends Controller
         return response()->json($services, 200);
     }
 
-    public function getServiceById($id) {
-        $service = Service::find($id);
+    public function getServiceByName($name) {
+        $service = Service::whereRaw('UPPER(name) = ?', [strtoupper($name)])->first();
 
         if (!$service) {
             return response()->json(['message' => 'Service not found'], 404);
