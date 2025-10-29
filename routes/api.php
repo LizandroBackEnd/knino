@@ -28,7 +28,7 @@ Route::middleware([IsAdmin::class])->group((function () {
     });
     Route::controller(EmployeesController::class)->group(function () {
         Route::get('/employees', 'getEmployees');
-        Route::get('/employee/{id}', 'getEmployeeById');
+        Route::get('/employee/{email}', 'getEmployeeByEmail');
         Route::post('/employees', 'addEmployee');
         Route::patch('/employee/{id}', 'updateEmployeeById');
         Route::delete('/employee/{id}', 'deleteEmployeeById');

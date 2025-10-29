@@ -48,6 +48,19 @@ class User extends Authenticatable implements JWTSubject
         'password',
     ];
 
+    public function setNameAttribute($value) {
+        $this->attributes['name'] = strtoupper($value);
+    }
+
+    public function setLastNamePrimary($value) {
+        $this->attributes['last_name_primary'] = strtoupper($value);
+    }
+
+    public function setLastNameSecondary($value) {
+        $this->attributes['last_name_secondary'] = strtoupper($value);
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *

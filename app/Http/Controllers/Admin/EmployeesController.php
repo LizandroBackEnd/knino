@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class EmployeesController extends Controller
@@ -16,7 +17,7 @@ class EmployeesController extends Controller
             'last_name_primary' => 'required|string|max:255',
             'last_name_secondary' => 'nullable|string|max:255',
             'phone' => 'required|string|max:10',
-            'role'=> 'required|string|max:50',
+            'role' => 'required|string|max:50',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -32,13 +33,13 @@ class EmployeesController extends Controller
             'phone' => $request->phone,
             'role' => $request->role,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
         ]);
         return response()->json(['message' => 'Employee added successfully'], 201);
-
     }
 
-    public function getEmployees() {
+    public function getEmployees()
+    {
         $employees = User::all();
 
         if ($employees->isEmpty()) {
@@ -47,29 +48,32 @@ class EmployeesController extends Controller
         return response()->json($employees, 200);
     }
 
-    public function getEmployeeById($id) {
-        $employee = User::find($id);
+    public function getEmployeeByEmail($email)
+    {
+        $employee = User::where('email',$email)->first();
 
         if (!$employee) {
             return response()->json(['message' => 'Employee not found'], 404);
-        } 
+        }
         return response()->json($employee, 200);
+
     }
 
-    public function updateEmployeeById(Request $request, $id) {
+    public function updateEmployeeById(Request $request, $id)
+    {
         $employee = User::find($id);
 
         if (!$employee) {
             return response()->json(['message' => 'Employee not found'], 404);
-        } 
+        }
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'last_name_primary' => 'sometimes|required|string|max:255',
             'last_name_secondary' => 'sometimes|nullable|string|max:255',
             'phone' => 'sometimes|required|string|max:10',
-            'role'=> 'sometimes|required|string|max:50',
-            'email' => 'sometimes|required|string|email|max:255|unique:users,email,'.$id,
+            'role' => 'sometimes|required|string|max:50',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:6|confirmed',
         ]);
 
@@ -103,7 +107,8 @@ class EmployeesController extends Controller
         return response()->json(['message' => 'Employee updated successfully'], 200);
     }
 
-    public function deleteEmployeeById($id) {
+    public function deleteEmployeeById($id)
+    {
         $employee = User::find($id);
 
         if (!$employee) {
