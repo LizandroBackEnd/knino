@@ -91,12 +91,23 @@ function runInlineScripts(el) {
   // Ejecuta scripts inyectados con innerHTML (solo scripts sin type=module)
   el.querySelectorAll('script').forEach(oldScript => {
     const script = document.createElement('script');
+    // preserve type (important for module scripts injected by Vite)
+    if (oldScript.type) script.type = oldScript.type;
+    // preserve integrity and crossorigin attributes if present
+    if (oldScript.integrity) script.integrity = oldScript.integrity;
+    if (oldScript.crossOrigin) script.crossOrigin = oldScript.crossOrigin;
+
     if (oldScript.src) {
       script.src = oldScript.src;
+      // Ensure scripts preserve execution order
       script.async = false;
     } else {
+      // For inline module scripts, ensure type is module so `import`/`export` work
+      if (!script.type) script.type = 'module';
       script.textContent = oldScript.textContent;
     }
+
+    // Append then remove to execute in document context
     document.head.appendChild(script).parentNode.removeChild(script);
   });
 }

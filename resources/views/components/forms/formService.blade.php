@@ -28,8 +28,8 @@
     </div>
   </div>
 
-  <div class="max-w-3xl bg-white p-6 rounded shadow mx-auto">
-    <form id="service-create-form" class="space-y-4" action="#" method="post" novalidate>
+    <div class="max-w-3xl bg-white p-6 rounded shadow mx-auto">
+      <form id="service-create-form" class="space-y-4" action="#" method="post" enctype="multipart/form-data" novalidate>
       @csrf
       <div class="grid grid-cols-1 gap-4">
         <div>
@@ -48,8 +48,9 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700">Foto (URL) <span class="text-red-500">*</span></label>
-          <input name="photo_url" type="url" placeholder="https://ejemplo.com/imagen.jpg" class="form-control mt-1 block w-full" required>
+          <label class="block text-sm font-medium text-gray-700">Foto (archivo) <span class="text-red-500">*</span></label>
+          <input name="photo" id="photo-input" type="file" accept="image/*" class="form-control mt-1 block w-full">
+          <div id="photo-preview" class="mt-2"></div>
         </div>
       </div>
 
@@ -70,6 +71,59 @@
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
 
+    // detect edit mode via ?edit={id}
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    const isEdit = !!editId;
+    const photoInput = form.querySelector('#photo-input');
+    const photoPreview = form.querySelector('#photo-preview');
+    const title = document.querySelector('h1');
+    const submitBtn = document.getElementById('service-create-submit');
+    if (isEdit) {
+      title.textContent = 'Editar Servicio';
+      submitBtn.textContent = 'Guardar cambios';
+      // remove required from photo input when editing
+      if (photoInput) photoInput.removeAttribute('required');
+      // fetch services and prefill
+      (async function prefill(){
+        try {
+          const res = await fetch(apiUrl, { headers: {'Accept':'application/json'} });
+          if (res.status !== 200) return;
+          const list = await res.json();
+          const svc = Array.isArray(list) ? list.find(x => String(x.id) === String(editId)) : null;
+          if (!svc) return;
+          form.querySelector('[name="name"]').value = svc.name || '';
+          form.querySelector('[name="description"]').value = svc.description || '';
+          form.querySelector('[name="price"]').value = svc.price || '';
+          if (svc.photo_url) {
+            const img = document.createElement('img');
+            img.src = svc.photo_url;
+            img.alt = svc.name || 'Foto';
+            img.className = 'w-32 h-32 object-cover rounded';
+            photoPreview.appendChild(img);
+          }
+        } catch (err) {
+          console.error('Prefill failed', err);
+        }
+      })();
+    }
+
+    // instant preview when user selects a new file
+    if (photoInput) {
+      photoInput.addEventListener('change', function () {
+        photoPreview.innerHTML = '';
+        const file = this.files && this.files[0];
+        if (!file) return;
+        const img = document.createElement('img');
+        img.className = 'w-32 h-32 object-cover rounded';
+        img.alt = 'Preview';
+        const reader = new FileReader();
+        reader.onload = function (ev) { img.src = ev.target.result; };
+        reader.readAsDataURL(file);
+        photoPreview.appendChild(img);
+      });
+    }
+
     function clearErrors() {
       form.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
       form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
@@ -87,25 +141,32 @@
       });
     }
 
-    form.addEventListener('submit', async function (e) {
+      form.addEventListener('submit', async function (e) {
       e.preventDefault();
       clearErrors();
       const submit = document.getElementById('service-create-submit');
       submit.disabled = true;
       submit.classList.add('opacity-70');
-
-      const data = {};
-      new FormData(form).forEach((v,k) => { data[k] = v; });
-
+      const formData = new FormData(form);
+          try {
+            for (const pair of formData.entries()) {
+              console.debug('formData', pair[0], pair[1]);
+            }
+          } catch (e) { console.debug('formData inspect error', e); }
       const tokenInput = form.querySelector('input[name="_token"]');
-      const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      const headers = { 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
       try {
-        const res = await fetch(apiUrl, {
+        let url = apiUrl;
+        if (isEdit) {
+          formData.append('_method', 'PATCH');
+          url = apiUrl + '/' + editId;
+        }
+        const res = await fetch(url, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify(data),
+          body: formData,
           credentials: 'same-origin'
         });
 

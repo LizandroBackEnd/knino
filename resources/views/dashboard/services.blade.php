@@ -59,13 +59,8 @@
     </div>
 
     <!-- Content area (cards / table) -->
-    <div>
-      {{-- Aquí irá la lista de clientes o componentes --}}
-    </div>
-
-    <!-- Content area (cards / table) -->
-    <div>
-      {{-- Aquí irá la lista de clientes o componentes --}}
+    <div id="services-list">
+      @include('components.lists.listService')
     </div>
   </main>
   @endif
