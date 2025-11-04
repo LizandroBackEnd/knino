@@ -36,8 +36,10 @@ Route::controller(EmployeesController::class)->group(function () {
 
 Route::controller(ClientController::class)->group(function () {
     Route::get('/clients', 'getClients');
-    Route::get('/clients/{email}', 'getClientByEmail');
-    Route::get('/clients/{name}', 'getClientByName');
+    // specific email route
+    Route::get('/clients/email/{email}', 'getClientByEmail');
+    // search by name (used by pet client search)
+    Route::get('/clients/search/{name}', 'getClientByName');
     Route::post('/clients', 'addClient');
     Route::patch('/clients/{id}', 'updateClientById');
     Route::delete('/clients/{id}', 'deleteClientById');
