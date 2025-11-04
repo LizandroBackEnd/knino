@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ServiceController extends Controller
 {
@@ -13,18 +15,28 @@ class ServiceController extends Controller
             'name' => 'required|string|min:10|max:100',
             'description' => 'required|string|min:20|max:255',
             'price' => 'required|numeric|min:0',
-            'photo_url' => 'required|url',
+            'photo' => 'required|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $photoUrl = null;
+        if ($request->hasFile('photo')) {
+            Log::debug('ServiceController:addService - photo uploaded', ['hasFile' => true, 'originalName' => $request->file('photo')->getClientOriginalName()]);
+            $path = $request->file('photo')->store('images/services', 'public');
+            // Save the relative disk path in the DB (e.g. "images/services/xxxx.png").
+            // The Service model accessor will expose a public URL for the frontend.
+            $photoUrl = $path;
+            Log::debug('ServiceController:addService - stored photo', ['path' => $path, 'photo_url' => $photoUrl]);
+        }
+
         Service::create([
             'name' => $request->get('name'),
             'description' => $request->get('description'),
             'price' => $request->get('price'),
-            'photo_url' => $request->get('photo_url'),
+            'photo_url' => $photoUrl,
         ]);
         return response()->json(['message' => 'Service added successfully'], 201);
     }
@@ -57,7 +69,7 @@ class ServiceController extends Controller
             'name' => 'sometimes|required|string|min:10|max:100',
             'description' => 'sometimes|required|string|min:20|max:255',
             'price' => 'sometimes|required|numeric|min:0',
-            'photo_url' => 'sometimes|required|url',
+            'photo' => 'sometimes|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
         ]);
 
         if ($validator->fails()) {
@@ -73,8 +85,22 @@ class ServiceController extends Controller
         if ($request->has('price')) {
             $services->price = $request->get('price');
         }
-        if ($request->has('photo_url')) {
-            $services->photo_url = $request->get('photo_url');
+        if ($request->hasFile('photo')) {
+            Log::debug('ServiceController:updateServiceById - photo uploaded', ['id' => $id, 'originalName' => $request->file('photo')->getClientOriginalName()]);
+            if (!empty($services->photo_url)) {
+                $oldPath = parse_url($services->photo_url, PHP_URL_PATH);
+                if ($oldPath) {
+                    $oldPath = ltrim($oldPath, '/');
+                    if (str_starts_with($oldPath, 'storage/')) {
+                        $oldPath = substr($oldPath, strlen('storage/'));
+                    }
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $path = $request->file('photo')->store('images/services', 'public');
+            // Store relative path; the model accessor will return the public URL.
+            $services->photo_url = $path;
+            Log::debug('ServiceController:updateServiceById - stored photo', ['id' => $id, 'path' => $path, 'photo_url' => $services->photo_url]);
         }
 
         $services->update();
