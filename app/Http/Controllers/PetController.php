@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pet;
+use App\Models\enums\SexEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class PetController extends Controller
 {
@@ -14,8 +17,10 @@ class PetController extends Controller
             'name' => 'required|string',
             'birth_date' => 'required|date',
             'color' => 'required|string',
-            'photo_url' => 'required|url',
-            'species' => 'required|in:perro,gato',
+            // accept an uploaded photo file instead of a URL
+            'photo' => 'required|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
+            'species' => 'required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
+            'sex' => 'required|in:' . implode(',', SexEnum::values()),
             'breed_id' => 'required|exists:breeds,id',
             'client_id' => 'required|exists:clients,id'
         ]);
@@ -24,12 +29,20 @@ class PetController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            Log::debug('PetController:addPet - photo uploaded', ['originalName' => $request->file('photo')->getClientOriginalName()]);
+            $photoPath = $request->file('photo')->store('images/pets', 'public');
+            Log::debug('PetController:addPet - stored photo', ['path' => $photoPath]);
+        }
+
         Pet::create([
             'name' => $request->get('name'),
             'birth_date' => $request->get('birth_date'),
             'color' => $request->get('color'),
-            'photo_url' => $request->get('photo_url'),
+            'photo_url' => $photoPath,
             'species' => $request->get('species'),
+            'sex' => $request->get('sex'),
             'breed_id' => $request->get('breed_id'),
             'client_id' => $request->get('client_id'),
 
@@ -70,8 +83,10 @@ class PetController extends Controller
             'name' => 'sometimes|required|string',
             'birth_date' => 'sometimes|required|date',
             'color' => 'sometimes|required|string',
-            'photo_url' => 'sometimes|required|url',
-            'species' => 'sometimes|required|in:perro,gato',
+            // allow optional photo upload on update
+            'photo' => 'sometimes|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
+            'species' => 'sometimes|required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
+            'sex' => 'sometimes|required|in:' . implode(',', SexEnum::values()),
             'breed_id' => 'sometimes|required|exists:breeds,id',
             'client_id' => 'sometimes|required|exists:clients,id'
         ]);
@@ -89,11 +104,27 @@ class PetController extends Controller
         if ($request->has('color')) {
             $pets->color =  $request->get('color');
         }
-        if ($request->has('photo_url')) {
-            $pets->photo_url =  $request->get('photo_url');
+        if ($request->hasFile('photo')) {
+            Log::debug('PetController:updatePetById - photo uploaded', ['id' => $id, 'originalName' => $request->file('photo')->getClientOriginalName()]);
+            if (!empty($pets->photo_url)) {
+                $oldPath = parse_url($pets->photo_url, PHP_URL_PATH);
+                if ($oldPath) {
+                    $oldPath = ltrim($oldPath, '/');
+                    if (str_starts_with($oldPath, 'storage/')) {
+                        $oldPath = substr($oldPath, strlen('storage/'));
+                    }
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $path = $request->file('photo')->store('images/pets', 'public');
+            $pets->photo_url = $path;
+            Log::debug('PetController:updatePetById - stored photo', ['id' => $id, 'path' => $path]);
         }
         if ($request->has('species')) {
             $pets->species =  $request->get('species');
+        }
+        if ($request->has('sex')) {
+            $pets->sex = $request->get('sex');
         }
         if ($request->has('breed_id')) {
             $pets->breed_id =  $request->get('breed_id');

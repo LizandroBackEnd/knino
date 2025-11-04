@@ -56,12 +56,18 @@ class ClientController extends Controller
 
     public function getClientByName($name)
     {
-        $client = Client::where('email', $name)->first();
+      $query = Client::query();
+      $term = urldecode($name);
+      // perform case-insensitive search without modifying the original input variable
+      $termLower = mb_strtolower($term, 'UTF-8');
 
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
-        }
-        return response()->json($client, 200);
+      // Use LOWER(...) comparisons so the DB search is case-insensitive across drivers
+      $query->whereRaw('LOWER(name) LIKE ?', ["%{$termLower}%"])
+          ->orWhereRaw('LOWER(last_name_primary) LIKE ?', ["%{$termLower}%"])
+          ->orWhereRaw('LOWER(last_name_secondary) LIKE ?', ["%{$termLower}%"]);
+
+      $clients = $query->get();
+      return response()->json($clients, 200);
     }
 
 
