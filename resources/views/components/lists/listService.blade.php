@@ -43,12 +43,9 @@
       const img = document.createElement('img');
       img.className = 'w-24 h-24 object-cover rounded';
       img.alt = s.name || 'Servicio';
-      // normalize URL: if backend returned a relative /storage path, make it absolute
-      // fallback to an existing icon if no photo is provided
       function normalizeUrl(u) {
         if (!u) return '/icons/services.svg';
         try {
-          // if already absolute (http/https), return as is
           const parsed = new URL(u, window.location.origin);
           return parsed.href;
         } catch (e) {
@@ -59,7 +56,6 @@
       console.debug('service image', s.id, photoUrl);
       img.src = photoUrl;
       img.onerror = function () { this.src = '/icons/default-image.svg'; };
-      // ensure onerror also falls back to a known existing icon
       img.addEventListener('error', function () { this.src = '/icons/services.svg'; });
       imgWrap.appendChild(img);
 
@@ -68,7 +64,6 @@
       const desc = el('div', 'text-sm text-gray-600 mb-2', s.description || '');
       const price = el('div', 'text-sm text-gray-700 font-medium mb-2', s.price ? ('$' + Number(s.price).toFixed(2)) : '');
 
-      // action buttons: match employee style (edit anchor + delete button)
       const actions = el('div', 'mt-4 grid grid-cols-2 gap-3');
 
       const editA = document.createElement('a');
@@ -96,7 +91,6 @@
 
       container.appendChild(card);
 
-      // wire delete with CSRF and confirm
       delBtn.addEventListener('click', async function () {
         const ok = window.confirmDelete ? await window.confirmDelete('¿Eliminar este servicio?') : confirm('¿Eliminar este servicio?');
         if (!ok) return;
@@ -119,7 +113,6 @@
     });
   }
 
-  // search handling (debounce)
   let timer = null;
   if (search) {
     search.addEventListener('input', function(){
@@ -136,7 +129,6 @@
             renderList(arr);
             return;
           }
-          // not found: empty state
           container.innerHTML = '<div class="col-span-1 text-sm text-gray-500">No hay resultados</div>';
         } catch (err) {
           console.error(err);
@@ -145,7 +137,6 @@
     });
   }
 
-  // initial load
   fetchAll();
 })();
 </script>

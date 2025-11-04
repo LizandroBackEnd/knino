@@ -120,7 +120,6 @@
           form.querySelector('[name="phone"]').value = emp.phone || '';
           form.querySelector('[name="role"]').value = emp.role || '';
           form.querySelector('[name="email"]').value = emp.email || '';
-          // leave password blank
         } catch (err) {
           console.error('Prefill failed', err);
           if (window.showToast) window.showToast('No se pudo obtener datos del empleado para editar.', { type: 'error' });
@@ -154,7 +153,6 @@
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
-      // if editing and password is empty, remove password fields
       if (isEdit && (!data.password || data.password === '')) {
         delete data.password;
         delete data.password_confirmation;

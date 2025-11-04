@@ -17,7 +17,6 @@ class PetController extends Controller
             'name' => 'required|string',
             'birth_date' => 'required|date',
             'color' => 'required|string',
-            // accept an uploaded photo file instead of a URL
             'photo' => 'required|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
             'species' => 'required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
             'sex' => 'required|in:' . implode(',', SexEnum::values()),
@@ -53,7 +52,7 @@ class PetController extends Controller
 
     public function getPets()
     {
-        $pets = Pet::all();
+        $pets = Pet::with(['breed', 'client'])->get();
 
         if ($pets->isEmpty()) {
             return response()->json(['message' => 'No pets found'], 404);
@@ -63,7 +62,7 @@ class PetController extends Controller
 
     public function getPetByName($name)
     {
-        $pet = Pet::whereRaw('UPPER(name) = ?', [strtoupper($name)])->first();
+        $pet = Pet::with(['breed', 'client'])->whereRaw('UPPER(name) = ?', [strtoupper($name)])->first();
 
         if (!$pet) {
             return response()->json(['message' => 'Pet not found'], 404);
@@ -83,7 +82,6 @@ class PetController extends Controller
             'name' => 'sometimes|required|string',
             'birth_date' => 'sometimes|required|date',
             'color' => 'sometimes|required|string',
-            // allow optional photo upload on update
             'photo' => 'sometimes|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
             'species' => 'sometimes|required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
             'sex' => 'sometimes|required|in:' . implode(',', SexEnum::values()),

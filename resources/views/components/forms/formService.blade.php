@@ -71,7 +71,6 @@
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
 
-    // detect edit mode via ?edit={id}
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
     const isEdit = !!editId;
@@ -82,9 +81,7 @@
     if (isEdit) {
       title.textContent = 'Editar Servicio';
       submitBtn.textContent = 'Guardar cambios';
-      // remove required from photo input when editing
       if (photoInput) photoInput.removeAttribute('required');
-      // fetch services and prefill
       (async function prefill(){
         try {
           const res = await fetch(apiUrl, { headers: {'Accept':'application/json'} });
@@ -108,7 +105,6 @@
       })();
     }
 
-    // instant preview when user selects a new file
     if (photoInput) {
       photoInput.addEventListener('change', function () {
         photoPreview.innerHTML = '';

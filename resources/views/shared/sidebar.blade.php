@@ -24,7 +24,6 @@
         <div class="mt-2">
           @foreach($items as [$label, $route, $icon])
             @php
-              // Ajuste: los nombres de ruta ahora usan el prefijo 'dashboard.' (ej: dashboard.mascotas)
               $map = [
                 'dashboard' => 'dashboard.home',
                 'clientes' => 'dashboard.clientes',

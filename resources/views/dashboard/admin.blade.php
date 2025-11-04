@@ -2,12 +2,10 @@
 
 @section('content')
   <main class="p-6" style="font-family: var(--font-secondary);">
-    <!-- Aquí va el contenido del dashboard -->
     <h2 class="text-lg font-bold mb-4" style="font-family: var(--font-primary);">
       Bienvenido al sistema K-NINO
     </h2>
 
-    <!-- Ejemplo de estadísticas -->
     <div class="grid grid-cols-2 gap-6">
       <div class="bg-white p-4 rounded shadow">
         <p class="text-sm text-gray-600">Citas Atendidas</p>

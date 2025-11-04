@@ -1,6 +1,3 @@
-// Simple toast utility for bottom-right messages
-// Exposes window.showToast(message, {type: 'success'|'error'|'info', duration: ms})
-
 (function () {
   const containerId = 'global-toast-container';
 
@@ -58,7 +55,6 @@
     const el = createToastElement(message, type);
     container.appendChild(el);
 
-    // Force reflow to enable transition
     requestAnimationFrame(() => {
       el.style.transform = 'translateY(0)';
       el.style.opacity = '1';
@@ -77,7 +73,6 @@
       }, { once: true });
     }
 
-    // click to dismiss
     el.addEventListener('click', hide);
 
     return {
@@ -85,7 +80,6 @@
     };
   }
 
-  // expose globally
   window.showToast = showToast;
 
 })();

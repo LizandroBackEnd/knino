@@ -2,8 +2,8 @@
   use App\Models\enums\SpeciesEnum;
   $apiUrl = url('/api/pets');
   $redirectUrl = url('/dashboard/mascotas');
-  $breedEndpoint = url('/api/breed'); // we'll append /{species}
-  $clientEndpoint = url('/api/clients'); // we'll append /{name}
+  $breedEndpoint = url('/api/breed'); 
+  $clientEndpoint = url('/api/clients/search'); 
   $speciesValues = SpeciesEnum::values();
 @endphp
 
@@ -33,7 +33,7 @@
   </div>
 
   <div class="max-w-3xl bg-white p-6 rounded shadow mx-auto">
-    <form id="pet-create-form" class="space-y-4" action="#" method="post" novalidate>
+    <form id="pet-create-form" class="space-y-4" action="#" method="post" enctype="multipart/form-data" novalidate>
       @csrf
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -63,10 +63,34 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700">Raza <span class="text-red-500">*</span></label>
-          <select name="breed_id" id="pet-breed" class="form-control mt-1 block w-full" required>
-            <option value="">Seleccione especie primero</option>
+          <label class="block text-sm font-medium text-gray-700">Sexo <span class="text-red-500">*</span></label>
+          <select name="sex" id="pet-sex" class="form-control mt-1 block w-full" required>
+            <option value="">Selecciona un sexo</option>
+            @foreach(App\Models\enums\SexEnum::values() as $sx)
+              <option value="{{ $sx }}">{{ ucfirst($sx) }}</option>
+            @endforeach
           </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Raza <span class="text-red-500">*</span></label>
+          <div class="flex items-center space-x-2">
+            <select name="breed_id" id="pet-breed" class="form-control mt-1 block w-full" required>
+              <option value="">Seleccione especie primero</option>
+            </select>
+            <button type="button" id="btn-add-breed" class="mt-1 inline-flex items-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-200">
+              @if(file_exists(public_path('icons/plus.svg')))
+                @php
+                  $plus = file_get_contents(public_path('icons/plus.svg'));
+                  $plus = preg_replace('/\s(width|height|class)="[^"]*"/i', '', $plus);
+                @endphp
+                <span class="inline-flex items-center justify-center w-5 h-5 mr-2 icon-inline" aria-hidden="true">{!! $plus !!}</span>
+              @else
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              @endif
+              <span>Raza</span>
+            </button>
+          </div>
         </div>
 
         <div class="md:col-span-2">
@@ -79,8 +103,9 @@
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Foto (URL) <span class="text-red-500">*</span></label>
-          <input name="photo_url" id="photo-url" type="url" placeholder="https://ejemplo.com/imagen.jpg" class="form-control mt-1 block w-full" required>
+          <label class="block text-sm font-medium text-gray-700">Foto (archivo) <span class="text-red-500">*</span></label>
+          <input name="photo" id="photo-input" type="file" accept="image/*" class="form-control mt-1 block w-full">
+          <div id="photo-preview" class="mt-2"></div>
         </div>
       </div>
 
@@ -92,6 +117,31 @@
     </form>
   </div>
 </main>
+
+<div id="modal-add-breed" data-breed-endpoint="{{ $breedEndpoint }}" class="fixed inset-0 hidden items-center justify-center z-50 backdrop-blur-sm bg-white/10">
+  <div class="bg-white rounded-lg shadow max-w-3xl w-full p-6">
+    <h3 class="text-lg font-semibold mb-2">Agregar Raza</h3>
+    <p class="text-sm text-gray-600 mb-4">Agrega una nueva raza para la especie seleccionada.</p>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Especie</label>
+      <select id="modal-breed-species" class="form-control mt-1 block w-full" disabled>
+        <option value="">--</option>
+        @foreach($speciesValues as $s)
+          <option value="{{ $s }}">{{ ucfirst($s) }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="mt-3">
+      <label class="block text-sm font-medium text-gray-700">Nombre de la raza</label>
+      <input id="modal-breed-name" type="text" class="form-control mt-1 block w-full" placeholder="Ej: Golden Retriever">
+  <p id="modal-breed-error" class="text-sm text-red-600 mt-1" style="display:none;"></p>
+    </div>
+    <div class="mt-4 flex justify-end space-x-2">
+  <button type="button" id="modal-breed-cancel" class="px-6 py-3 rounded-md bg-white text-sm hover:bg-gray-50 shadow-sm">Cancelar</button>
+      <button type="button" id="modal-breed-save" class="px-6 py-3 rounded-md text-white btn-green">Agregar raza</button>
+    </div>
+  </div>
+</div>
 
 <script>
   (function () {
@@ -120,26 +170,23 @@
       });
     }
 
-    // species -> breeds
     const speciesSelect = document.getElementById('pet-species');
     const breedSelect = document.getElementById('pet-breed');
 
-    speciesSelect.addEventListener('change', async function (e) {
-      const val = e.target.value;
+    async function loadBreedsForSpecies(species, preselectNameOrId) {
       breedSelect.innerHTML = '<option value="">Cargando...</option>';
-      if (!val) {
+      if (!species) {
         breedSelect.innerHTML = '<option value="">Seleccione especie primero</option>';
         return;
       }
 
       try {
-        const res = await fetch(breedEndpoint + '/' + encodeURIComponent(val), { headers: { 'Accept': 'application/json' } });
+        const res = await fetch(breedEndpoint + '/' + encodeURIComponent(species), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) {
           breedSelect.innerHTML = '<option value="">No se encontraron razas</option>';
           return;
         }
         const payload = await res.json();
-        // payload may be array of breeds or object; try to handle array
         const list = Array.isArray(payload) ? payload : (payload.data || []);
         if (!list.length) {
           breedSelect.innerHTML = '<option value="">No se encontraron razas</option>';
@@ -152,38 +199,66 @@
           opt.textContent = b.name ?? b.label ?? b.value ?? opt.value;
           breedSelect.appendChild(opt);
         });
+
+        if (preselectNameOrId) {
+          const byId = breedSelect.querySelector('option[value="' + preselectNameOrId + '"]');
+          if (byId) {
+            breedSelect.value = preselectNameOrId;
+          } else {
+            // try by name
+            for (const opt of breedSelect.options) {
+              if (opt.textContent.trim().toLowerCase() === String(preselectNameOrId).trim().toLowerCase()) {
+                breedSelect.value = opt.value;
+                break;
+              }
+            }
+          }
+        }
       } catch (err) {
         console.error('Error fetching breeds', err);
         breedSelect.innerHTML = '<option value="">Error al cargar razas</option>';
       }
+    }
+
+    speciesSelect.addEventListener('change', function (e) {
+      loadBreedsForSpecies(e.target.value);
     });
 
-    // client search with debounce
+
     const clientInput = document.getElementById('client-search');
     const clientResults = document.getElementById('client-results');
     const clientIdInput = document.getElementById('client-id');
     let clientTimer = null;
 
+    function scheduleClientSearch(q) {
+      if (clientTimer) clearTimeout(clientTimer);
+      clientTimer = setTimeout(() => fetchClients(q), 250);
+    }
+
     clientInput.addEventListener('input', function (e) {
       const q = e.target.value.trim();
       clientIdInput.value = '';
-      clientResults.style.display = 'none';
       clientResults.innerHTML = '';
-      if (clientTimer) clearTimeout(clientTimer);
-      if (q.length < 2) return;
-      clientTimer = setTimeout(() => fetchClients(q), 300);
+      if (!q) {
+        clientResults.style.display = 'none';
+        return;
+      }
+      scheduleClientSearch(q);
+    });
+
+    clientInput.addEventListener('focus', function (e) {
+      const q = e.target.value.trim();
+      if (q) scheduleClientSearch(q);
     });
 
     async function fetchClients(q) {
       try {
         const res = await fetch(clientEndpoint + '/' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) {
-          // no clients
           return;
         }
         const payload = await res.json();
-        // handle array or single object
-        const list = Array.isArray(payload) ? payload : (payload.data ? payload.data : (Array.isArray(payload.clients) ? payload.clients : [payload]));
+        const list = Array.isArray(payload) ? payload : (payload.data || []);
         renderClientResults(list);
       } catch (err) {
         console.error('Error searching clients', err);
@@ -196,18 +271,117 @@
         clientResults.style.display = 'none';
         return;
       }
+
+      // improved card-like result items
       list.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer';
-        div.textContent = (c.name ?? c.nombre ?? '') + (c.last_name_primary ? ' ' + c.last_name_primary : '') + (c.last_name_secondary ? ' ' + c.last_name_secondary : '') + (c.email ? ' — ' + c.email : '');
-        div.addEventListener('click', function () {
-          clientInput.value = div.textContent;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors duration-150';
+
+        // avatar / initials
+        const avatar = document.createElement('div');
+        avatar.className = 'w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-700';
+        const initials = ((c.name ?? c.nombre ?? '').charAt(0) || '') + ((c.last_name_primary || '').charAt(0) || '');
+        avatar.textContent = initials.toUpperCase();
+
+        // main info
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        const title = document.createElement('div');
+        title.className = 'text-sm font-medium text-gray-900 truncate';
+        title.textContent = (c.name ?? c.nombre ?? '') + (c.last_name_primary ? ' ' + c.last_name_primary : '') + (c.last_name_secondary ? ' ' + c.last_name_secondary : '');
+        const meta = document.createElement('div');
+        meta.className = 'text-xs text-gray-500 truncate';
+        const parts = [];
+        if (c.email) parts.push(c.email);
+        if (c.phone) parts.push(c.phone);
+        meta.textContent = parts.join(' — ');
+
+        info.appendChild(title);
+        info.appendChild(meta);
+
+        // action icon (chevron)
+        const chevron = document.createElement('div');
+        chevron.className = 'text-gray-400';
+        chevron.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(info);
+        wrapper.appendChild(chevron);
+
+        wrapper.addEventListener('click', function () {
+          // on selection fill input with readable name and set id
+          clientInput.value = title.textContent;
           clientIdInput.value = c.id ?? c.client_id ?? '';
           clientResults.style.display = 'none';
         });
-        clientResults.appendChild(div);
+
+        clientResults.appendChild(wrapper);
       });
       clientResults.style.display = 'block';
+    }
+
+    const photoInput = document.getElementById('photo-input');
+    const photoPreview = document.getElementById('photo-preview');
+
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    const isEdit = !!editId;
+    const title = document.querySelector('h1');
+    const submitBtn = document.getElementById('pet-create-submit');
+    if (isEdit) {
+      title.textContent = 'Editar Mascota';
+      submitBtn.textContent = 'Guardar cambios';
+      if (photoInput) photoInput.removeAttribute('required');
+      (async function prefill(){
+        try {
+          const res = await fetch(apiUrl, { headers: {'Accept':'application/json'} });
+          if (res.status !== 200) return;
+          const list = await res.json();
+          const pet = Array.isArray(list) ? list.find(x => String(x.id) === String(editId)) : null;
+          if (!pet) return;
+          form.querySelector('[name="name"]').value = pet.name || '';
+          form.querySelector('[name="birth_date"]').value = pet.birth_date ? pet.birth_date.split('T')[0] : '';
+          form.querySelector('[name="color"]').value = pet.color || '';
+          form.querySelector('[name="species"]').value = pet.species || '';
+          form.querySelector('[name="sex"]').value = pet.sex || '';
+          setTimeout(() => {
+            if (pet.breed_id) {
+              const opt = document.createElement('option');
+              opt.value = pet.breed_id;
+              opt.textContent = pet.breed?.name ?? 'Raza';
+              breedSelect.innerHTML = '';
+              breedSelect.appendChild(opt);
+              breedSelect.value = pet.breed_id;
+            }
+          }, 200);
+          if (pet.client) {
+            document.getElementById('client-search').value = (pet.client.name ?? '') + (pet.client.last_name_primary ? ' ' + pet.client.last_name_primary : '');
+            document.getElementById('client-id').value = pet.client.id ?? pet.client_id ?? '';
+          }
+          if (pet.photo_url) {
+            const img = document.createElement('img');
+            img.src = pet.photo_url;
+            img.alt = pet.name || 'Foto';
+            img.className = 'w-32 h-32 object-cover rounded';
+            photoPreview.appendChild(img);
+          }
+        } catch (err) { console.error('Prefill failed', err); }
+      })();
+    }
+
+    if (photoInput) {
+      photoInput.addEventListener('change', function () {
+        photoPreview.innerHTML = '';
+        const file = this.files && this.files[0];
+        if (!file) return;
+        const img = document.createElement('img');
+        img.className = 'w-32 h-32 object-cover rounded';
+        img.alt = 'Preview';
+        const reader = new FileReader();
+        reader.onload = function (ev) { img.src = ev.target.result; };
+        reader.readAsDataURL(file);
+        photoPreview.appendChild(img);
+      });
     }
 
     form.addEventListener('submit', async function (e) {
@@ -217,23 +391,29 @@
       submit.disabled = true;
       submit.classList.add('opacity-70');
 
-      const data = {};
-      new FormData(form).forEach((v,k) => { if (k !== 'client_search') data[k] = v; });
+      const formData = new FormData(form);
+      formData.delete('client_search');
 
       const tokenInput = form.querySelector('input[name="_token"]');
-      const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      const headers = { 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
       try {
-        const res = await fetch(apiUrl, {
+        let url = apiUrl;
+        if (isEdit) {
+          formData.append('_method', 'PATCH');
+          url = apiUrl + '/' + editId;
+        }
+
+        const res = await fetch(url, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify(data),
+          body: formData,
           credentials: 'same-origin'
         });
 
         if (res.status === 201 || res.status === 200) {
-          showToast('Mascota creada correctamente', { type: 'success' });
+          if (window.showToast) showToast('Mascota guardada correctamente', { type: 'success' });
           window.location.href = redirectUrl;
           return;
         }
@@ -241,17 +421,16 @@
         if (res.status === 422) {
           const payload = await res.json();
           if (payload && payload.errors) showErrors(payload.errors);
-          else console.warn('Validation failed but no errors object', payload);
           submit.disabled = false;
           submit.classList.remove('opacity-70');
           return;
         }
 
         console.error('Unexpected response', res.status);
-        showToast('Ocurrió un error al intentar guardar la mascota. Intenta de nuevo.', { type: 'error' });
+        if (window.showToast) showToast('Ocurrió un error al intentar guardar la mascota. Intenta de nuevo.', { type: 'error' });
       } catch (err) {
         console.error('Request failed', err);
-        showToast('No se pudo conectar con el servidor.', { type: 'error' });
+        if (window.showToast) showToast('No se pudo conectar con el servidor.', { type: 'error' });
       } finally {
         submit.disabled = false;
         submit.classList.remove('opacity-70');

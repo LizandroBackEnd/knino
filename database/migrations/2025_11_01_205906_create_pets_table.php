@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('birth_date');
             $table->string('color', 20);
             $table->string('species');
+            $table->string('sex');
             $table->foreignId('breed_id')->constrained('breeds')->onDelete('cascade');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->string('photo_url');
