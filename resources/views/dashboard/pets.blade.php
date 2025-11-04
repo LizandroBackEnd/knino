@@ -1,6 +1,9 @@
 @extends('layouts.dashboard')
 
 @section('content')
+  @if(!empty($showCreate))
+    @include('components.forms.formPet')
+  @else
   <main class="p-6" style="font-family: var(--font-secondary);">
     <div class="flex items-start justify-between mb-6">
       <div>
@@ -9,7 +12,7 @@
       </div>
 
       <div class="ml-4">
-  <button type="button" class="inline-flex items-center px-4 py-2 rounded-md text-white btn-green js-open-form-modal" data-modal-target="#petModal" style="background: var(--green);">
+        <a href="{{ route('dashboard.mascotas.create') }}" class="inline-flex items-center px-4 py-2 rounded-md text-white btn-green" data-nav style="background: var(--green);">
           {{-- Icono +: inline SVG from public/icons so it can inherit color (white). Fallback to inline SVG using currentColor. --}}
           @if(file_exists(public_path('icons/plus.svg')))
             @php
@@ -26,7 +29,7 @@
             <svg class="w-4 h-4 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/></svg>
           @endif
           <span>Agregar Mascota</span>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -59,28 +62,11 @@
     <div>
       {{-- Aquí irá la lista de clientes o componentes --}}
     </div>
-  </main>
-@endsection
 
-@component('components.modal-form', ['id' => 'petModal', 'title' => 'Agregar Nueva Mascota'])
-  <form method="POST" action="#" class="space-y-4" enctype="multipart/form-data">
-    @csrf
-    @php
-      // If controller didn't provide $owners, try to fetch users as owners.
-      if (!isset($owners)) {
-        try {
-          $owners = \App\Models\User::pluck('name', 'id')->toArray();
-        } catch (\Throwable $e) {
-          $owners = [];
-        }
-      }
-    @endphp
-    @include('components.forms.pet-form', ['owners' => $owners])
-    <div class="mt-4 flex items-center justify-end gap-3">
-        <button type="button" class="px-5 py-2 rounded-md border btn-cancel js-close-modal">Cancelar</button>
-        <div class="ml-auto">
-          <button type="submit" class="px-5 py-2 rounded-md text-white btn-green">Guardar Mascota</button>
-        </div>
+    <!-- Content area (cards / table) -->
+    <div>
+      {{-- Aquí irá la lista de clientes o componentes --}}
     </div>
-  </form>
-@endcomponent
+  </main>
+  @endif
+@endsection

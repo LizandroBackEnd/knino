@@ -1,0 +1,91 @@
+// Simple toast utility for bottom-right messages
+// Exposes window.showToast(message, {type: 'success'|'error'|'info', duration: ms})
+
+(function () {
+  const containerId = 'global-toast-container';
+
+  function ensureContainer() {
+    let c = document.getElementById(containerId);
+    if (c) return c;
+    c = document.createElement('div');
+    c.id = containerId;
+    c.style.position = 'fixed';
+    c.style.right = '1rem';
+    c.style.bottom = '1rem';
+    c.style.zIndex = 9999;
+    c.style.display = 'flex';
+    c.style.flexDirection = 'column';
+    c.style.gap = '0.5rem';
+    c.style.alignItems = 'flex-end';
+    document.body.appendChild(c);
+    return c;
+  }
+
+  function createToastElement(message, type) {
+    const el = document.createElement('div');
+    el.className = 'toast-item';
+    el.style.minWidth = '220px';
+    el.style.maxWidth = '420px';
+    el.style.padding = '12px 16px';
+    el.style.borderRadius = '8px';
+    el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+    el.style.color = '#fff';
+    el.style.fontSize = '14px';
+    el.style.transition = 'transform 220ms ease, opacity 220ms ease';
+    el.style.transform = 'translateY(8px)';
+    el.style.opacity = '0';
+
+    switch (type) {
+      case 'success':
+        el.style.background = 'linear-gradient(90deg,#16a34a,#059669)';
+        break;
+      case 'error':
+        el.style.background = 'linear-gradient(90deg,#dc2626,#b91c1c)';
+        break;
+      case 'info':
+      default:
+        el.style.background = 'linear-gradient(90deg,#0ea5e9,#0369a1)';
+        break;
+    }
+
+    el.textContent = message;
+    return el;
+  }
+
+  function showToast(message, opts = {}) {
+    const { type = 'info', duration = 4000 } = opts;
+    const container = ensureContainer();
+    const el = createToastElement(message, type);
+    container.appendChild(el);
+
+    // Force reflow to enable transition
+    requestAnimationFrame(() => {
+      el.style.transform = 'translateY(0)';
+      el.style.opacity = '1';
+    });
+
+    const timeout = setTimeout(() => {
+      hide();
+    }, duration);
+
+    function hide() {
+      clearTimeout(timeout);
+      el.style.transform = 'translateY(8px)';
+      el.style.opacity = '0';
+      el.addEventListener('transitionend', () => {
+        el.remove();
+      }, { once: true });
+    }
+
+    // click to dismiss
+    el.addEventListener('click', hide);
+
+    return {
+      dismiss: hide
+    };
+  }
+
+  // expose globally
+  window.showToast = showToast;
+
+})();

@@ -6,23 +6,43 @@ Route::get('/', function () {
     return view('welcome');
 
 });
-
-Route::get('/dashboard' , function () {
+// Dashboard grouped routes: render the corresponding dashboard view.
+// These return the full layout on normal requests and only the content fragment
+// when requested via X-Requested-With: XMLHttpRequest (our router fetches it).
+Route::get('/dashboard', function () {
     return view('dashboard.admin');
-})->name('dashboard');
+})->name('dashboard.home');
 
-Route::get('/clients', function () {
+Route::get('/dashboard/clientes', function () {
     return view('dashboard.clients');
-})->name('clientes');
+})->name('dashboard.clientes');
 
-Route::get('/pets', function () {
+// Show create page by reusing the same view but toggling the create form component
+Route::get('/dashboard/clientes/create', function () {
+    return view('dashboard.clients', ['showCreate' => true]);
+})->name('dashboard.clientes.create');
+
+Route::get('/dashboard/mascotas', function () {
     return view('dashboard.pets');
-})->name('mascotas');
+})->name('dashboard.mascotas');
 
-Route::get('/services', function () {
+// Show create page for pets
+Route::get('/dashboard/mascotas/create', function () {
+    return view('dashboard.pets', ['showCreate' => true]);
+})->name('dashboard.mascotas.create');
+
+Route::get('/dashboard/servicios', function () {
     return view('dashboard.services');
-})->name('servicios');
+})->name('dashboard.servicios');
 
-Route::get('/employees', function () {
+Route::get('/dashboard/servicios/create', function () {
+    return view('dashboard.services', ['showCreate' => true]);
+})->name('dashboard.servicios.create');
+
+Route::get('/dashboard/empleados', function () {
     return view('dashboard.employees');
-})->name('empleados');
+})->name('dashboard.empleados');
+
+Route::get('/dashboard/empleados/create', function () {
+    return view('dashboard.employees', ['showCreate' => true]);
+})->name('dashboard.empleados.create');

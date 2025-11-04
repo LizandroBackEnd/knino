@@ -54,6 +54,18 @@ class ClientController extends Controller
         return response()->json($client, 200);
     }
 
+    public function getClientByName($name)
+    {
+        $client = Client::where('email', $name)->first();
+
+        if (!$client) {
+            return response()->json(['message' => 'Client not found'], 404);
+        }
+        return response()->json($client, 200);
+    }
+
+
+
     public function updateClientById(Request $request, $id)
     {
         $client = Client::find($id);
@@ -98,7 +110,8 @@ class ClientController extends Controller
         return response()->json(['message' => 'Client updated successfully'], 200);
     }
 
-    public function deleteClientById($id) {
+    public function deleteClientById($id)
+    {
         $client = Client::find($id);
 
         if (!$client) {

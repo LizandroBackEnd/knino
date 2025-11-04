@@ -24,8 +24,17 @@
         <div class="mt-2">
           @foreach($items as [$label, $route, $icon])
             @php
-              $url = \Illuminate\Support\Facades\Route::has($route) ? route($route) : '#';
-              $isActive = optional(request()->route())->getName() === $route;
+              // Ajuste: los nombres de ruta ahora usan el prefijo 'dashboard.' (ej: dashboard.mascotas)
+              $map = [
+                'dashboard' => 'dashboard.home',
+                'clientes' => 'dashboard.clientes',
+                'mascotas' => 'dashboard.mascotas',
+                'servicios' => 'dashboard.servicios',
+                'empleados' => 'dashboard.empleados',
+              ];
+              $named = isset($map[$route]) ? $map[$route] : $route;
+              $url = \Illuminate\Support\Facades\Route::has($named) ? route($named) : '#';
+              $isActive = optional(request()->route())->getName() === $named;
             @endphp
 
             <a href="{{ $url }}" class="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors w-full {{ $isActive ? 'bg-[var(--color-primary)] text-white' : 'text-gray-700 hover:bg-gray-50' }}" style="font-family: var(--font-subtitle);">

@@ -19,20 +19,30 @@
         href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
         rel="stylesheet">
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard-router.js', 'resources/js/toast.js'])
 </head>
 
 <body class="min-h-screen bg-neutral">
   <div class="flex">
-    <x-sidebar />
+        {{-- Si la petición es AJAX (fetch desde el router), devolvemos solo el fragmento de contenido
+             Esto permite que el cliente reemplace #dashboard-content sin enviar todo el layout. --}}
+        @if(request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest')
+          <div id="dashboard-content">
+            @yield('content')
+          </div>
+        @else
+          <x-sidebar />
 
-    <div class="flex-1 min-h-screen bg-neutral">
-      <x-header />
+          <div class="flex-1 min-h-screen bg-neutral">
+            <x-header />
 
-      <main>
-        @yield('content')
-      </main>
-    </div>
+            <main>
+              <div id="dashboard-content">
+                @yield('content')
+              </div>
+            </main>
+          </div>
+        @endif
   </div>
 
 </body>
