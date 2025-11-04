@@ -1,6 +1,4 @@
 @php
-  // Self-contained client creation form. Submits JSON to the REST API endpoint /api/clients
-  // and redirects to the clients listing page on success.
   $apiUrl = url('/api/clients');
   $redirectUrl = url('/dashboard/clientes');
 @endphp
@@ -9,7 +7,6 @@
   <div class="relative mb-6">
     <div class="absolute left-0 top-0">
   <a href="{{ $redirectUrl }}" class="inline-flex items-center px-4 py-3 rounded-md text-gray-700" data-nav>
-        {{-- return icon from public/icons/return.svg --}}
           @if(file_exists(public_path('icons/return.svg')))
           @php
             $ret = file_get_contents(public_path('icons/return.svg'));
@@ -84,6 +81,39 @@
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
 
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    let isEdit = !!editId;
+
+    const titleEl = document.querySelector('h1');
+    const submitBtn = document.getElementById('client-create-submit');
+
+    if (isEdit) {
+      if (titleEl) titleEl.textContent = 'Editar Cliente';
+      if (submitBtn) submitBtn.textContent = 'Guardar cambios';
+      (async function prefill() {
+        try {
+          const res = await fetch(apiUrl, { credentials: 'same-origin' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const clients = await res.json();
+          const client = (clients || []).find(c => String(c.id) === String(editId));
+          if (!client) {
+            if (window.showToast) window.showToast('Cliente no encontrado', { type: 'error' });
+            return;
+          }
+          form.querySelector('[name="name"]').value = client.name || '';
+          form.querySelector('[name="last_name_primary"]').value = client.last_name_primary || '';
+          form.querySelector('[name="last_name_secondary"]').value = client.last_name_secondary || '';
+          form.querySelector('[name="phone"]').value = client.phone || '';
+          form.querySelector('[name="email"]').value = client.email || '';
+          form.querySelector('[name="address"]').value = client.address || '';
+        } catch (err) {
+          console.error('Prefill failed', err);
+          if (window.showToast) window.showToast('No se pudo obtener datos del cliente para editar.', { type: 'error' });
+        }
+      })();
+    }
+
     function clearErrors() {
       form.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
       form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
@@ -104,27 +134,32 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       clearErrors();
-      const submit = document.getElementById('client-create-submit');
-      submit.disabled = true;
-      submit.classList.add('opacity-70');
+      const submit = submitBtn;
+      if (submit) {
+        submit.disabled = true;
+        submit.classList.add('opacity-70');
+      }
 
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
-      // include CSRF token if present in the form
       const tokenInput = form.querySelector('input[name="_token"]');
       const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
       try {
-        const res = await fetch(apiUrl, {
-          method: 'POST',
+        const method = isEdit ? 'PATCH' : 'POST';
+        const url = isEdit ? apiUrl + '/' + encodeURIComponent(editId) : apiUrl;
+
+        const res = await fetch(url, {
+          method: method,
           headers: headers,
           body: JSON.stringify(data),
           credentials: 'same-origin'
         });
 
         if (res.status === 201 || res.status === 200) {
+          if (window.showToast) window.showToast(isEdit ? 'Cliente actualizado' : 'Cliente creado', { type: 'success' });
           window.location.href = redirectUrl;
           return;
         }
@@ -133,8 +168,10 @@
           const payload = await res.json();
           if (payload && payload.errors) showErrors(payload.errors);
           else console.warn('Validation failed but no errors object', payload);
-          submit.disabled = false;
-          submit.classList.remove('opacity-70');
+          if (submit) {
+            submit.disabled = false;
+            submit.classList.remove('opacity-70');
+          }
           return;
         }
 
@@ -152,8 +189,10 @@
           alert('No se pudo conectar con el servidor.');
         }
       } finally {
-        submit.disabled = false;
-        submit.classList.remove('opacity-70');
+        if (submit) {
+          submit.disabled = false;
+          submit.classList.remove('opacity-70');
+        }
       }
     });
   })();

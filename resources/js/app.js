@@ -1,16 +1,19 @@
 import './bootstrap';
 import initFormModals from './form';
+import confirmDelete from './alertDelete';
 
 document.addEventListener('DOMContentLoaded', () => {
 	initFormModals();
 });
 
-// Re-initialize behaviors after client-side dashboard navigation
 document.addEventListener('dashboard:navigated', (e) => {
-	// Re-run form modal bindings so newly injected DOM elements get handlers
 	try {
 		initFormModals();
 	} catch (err) {
 		console.warn('Failed to re-init form modals after navigation', err);
 	}
 });
+
+if (typeof window !== 'undefined') {
+  window.confirmDelete = confirmDelete;
+}
