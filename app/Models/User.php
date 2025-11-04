@@ -52,11 +52,11 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes['name'] = strtoupper($value);
     }
 
-    public function setLastNamePrimary($value) {
+    public function setLastNamePrimaryAttribute($value) {
         $this->attributes['last_name_primary'] = strtoupper($value);
     }
 
-    public function setLastNameSecondary($value) {
+    public function setLastNameSecondaryAttribute($value) {
         $this->attributes['last_name_secondary'] = strtoupper($value);
     }
 
