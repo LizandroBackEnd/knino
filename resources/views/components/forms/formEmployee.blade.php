@@ -70,7 +70,12 @@
 
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Contraseña <span class="text-red-500">*</span></label>
-          <input name="password" type="password" placeholder="********" class="form-control mt-1 block w-full" required>
+          <input name="password" type="password" placeholder="********" class="form-control mt-1 block w-full">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700">Confirmar contraseña <span class="text-red-500">*</span></label>
+          <input name="password_confirmation" type="password" placeholder="********" class="form-control mt-1 block w-full">
         </div>
       </div>
 
@@ -90,6 +95,38 @@
 
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
+
+    // detect edit mode
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    let isEdit = !!editId;
+
+    const titleEl = document.querySelector('h1');
+    const submitBtn = document.getElementById('employee-create-submit');
+
+    if (isEdit) {
+      if (titleEl) titleEl.textContent = 'Editar Empleado';
+      if (submitBtn) submitBtn.textContent = 'Guardar cambios';
+      (async function prefill() {
+        try {
+          const res = await fetch(apiUrl, { credentials: 'same-origin' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const items = await res.json();
+          const emp = (items || []).find(e => String(e.id) === String(editId));
+          if (!emp) { if (window.showToast) window.showToast('Empleado no encontrado', { type: 'error' }); return; }
+          form.querySelector('[name="name"]').value = emp.name || '';
+          form.querySelector('[name="last_name_primary"]').value = emp.last_name_primary || '';
+          form.querySelector('[name="last_name_secondary"]').value = emp.last_name_secondary || '';
+          form.querySelector('[name="phone"]').value = emp.phone || '';
+          form.querySelector('[name="role"]').value = emp.role || '';
+          form.querySelector('[name="email"]').value = emp.email || '';
+          // leave password blank
+        } catch (err) {
+          console.error('Prefill failed', err);
+          if (window.showToast) window.showToast('No se pudo obtener datos del empleado para editar.', { type: 'error' });
+        }
+      })();
+    }
 
     function clearErrors() {
       form.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
@@ -111,27 +148,30 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       clearErrors();
-      const submit = document.getElementById('employee-create-submit');
-      submit.disabled = true;
-      submit.classList.add('opacity-70');
+      const submit = submitBtn;
+      if (submit) { submit.disabled = true; submit.classList.add('opacity-70'); }
 
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
+
+      // if editing and password is empty, remove password fields
+      if (isEdit && (!data.password || data.password === '')) {
+        delete data.password;
+        delete data.password_confirmation;
+      }
 
       const tokenInput = form.querySelector('input[name="_token"]');
       const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
       try {
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(data),
-          credentials: 'same-origin'
-        });
+        const method = isEdit ? 'PATCH' : 'POST';
+        const url = isEdit ? apiUrl + '/' + encodeURIComponent(editId) : apiUrl;
+
+        const res = await fetch(url, { method: method, headers: headers, body: JSON.stringify(data), credentials: 'same-origin' });
 
         if (res.status === 201 || res.status === 200) {
-          if (window.showToast) showToast('Empleado creado correctamente', { type: 'success' });
+          if (window.showToast) window.showToast(isEdit ? 'Empleado actualizado' : 'Empleado creado correctamente', { type: 'success' });
           window.location.href = redirectUrl;
           return;
         }
@@ -139,19 +179,17 @@
         if (res.status === 422) {
           const payload = await res.json();
           if (payload && payload.errors) showErrors(payload.errors);
-          submit.disabled = false;
-          submit.classList.remove('opacity-70');
+          if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
           return;
         }
 
         console.error('Unexpected response', res.status);
-        if (window.showToast) showToast('Ocurrió un error al intentar crear el empleado.', { type: 'error' });
+        if (window.showToast) window.showToast('Ocurrió un error al intentar guardar el empleado.', { type: 'error' });
       } catch (err) {
         console.error('Request failed', err);
-        if (window.showToast) showToast('No se pudo conectar con el servidor.', { type: 'error' });
+        if (window.showToast) window.showToast('No se pudo conectar con el servidor.', { type: 'error' });
       } finally {
-        submit.disabled = false;
-        submit.classList.remove('opacity-70');
+        if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
       }
     });
   })();

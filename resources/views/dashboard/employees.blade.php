@@ -60,7 +60,8 @@
 
     <!-- Content area (cards / table) -->
     <div>
-      {{-- Aquí irá la lista de clientes o componentes --}}
+      {{-- Aquí irá la lista de empleados o componentes --}}
+      @include('components.lists.listEmployee')
     </div>
     </div>
   </main>
