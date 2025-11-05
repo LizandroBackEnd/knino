@@ -68,7 +68,6 @@
         }
         try {
           container.innerHTML = '<div class="col-span-2 text-center text-gray-500">Buscando...</div>';
-          // call email endpoint when searching by email (contains @), otherwise use name search
           let res;
           if (q.includes('@')) {
             res = await fetch(apiUrl + '/email/' + encodeURIComponent(q), { credentials: 'same-origin' });
