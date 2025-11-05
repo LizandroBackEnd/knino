@@ -68,20 +68,32 @@
         }
         try {
           container.innerHTML = '<div class="col-span-2 text-center text-gray-500">Buscando...</div>';
-          const res = await fetch(apiUrl + '/' + encodeURIComponent(q), { credentials: 'same-origin' });
-          if (res.status === 404) {
-            container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay resultados.</div>';
-            return;
-          }
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          const payload = await res.json();
-          // endpoint may return a single object or an array
-          if (Array.isArray(payload)) {
-            renderClients(payload);
-          } else if (payload && typeof payload === 'object') {
-            renderClients([payload]);
+          // call email endpoint when searching by email (contains @), otherwise use name search
+          let res;
+          if (q.includes('@')) {
+            res = await fetch(apiUrl + '/email/' + encodeURIComponent(q), { credentials: 'same-origin' });
+            if (res.status === 404) {
+              container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay resultados.</div>';
+              return;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const payload = await res.json();
+            renderClients(payload ? [payload] : []);
           } else {
-            container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay resultados.</div>';
+            res = await fetch(apiUrl + '/search/' + encodeURIComponent(q), { credentials: 'same-origin' });
+            if (res.status === 404) {
+              container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay resultados.</div>';
+              return;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const payload = await res.json();
+            if (Array.isArray(payload)) {
+              renderClients(payload);
+            } else if (payload && typeof payload === 'object') {
+              renderClients([payload]);
+            } else {
+              container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay resultados.</div>';
+            }
           }
         } catch (err) {
           console.error('Search failed', err);
