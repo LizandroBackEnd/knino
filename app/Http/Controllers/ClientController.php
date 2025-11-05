@@ -58,10 +58,8 @@ class ClientController extends Controller
     {
       $query = Client::query();
       $term = urldecode($name);
-      // perform case-insensitive search without modifying the original input variable
       $termLower = mb_strtolower($term, 'UTF-8');
 
-      // Use LOWER(...) comparisons so the DB search is case-insensitive across drivers
       $query->whereRaw('LOWER(name) LIKE ?', ["%{$termLower}%"])
           ->orWhereRaw('LOWER(last_name_primary) LIKE ?', ["%{$termLower}%"])
           ->orWhereRaw('LOWER(last_name_secondary) LIKE ?', ["%{$termLower}%"]);

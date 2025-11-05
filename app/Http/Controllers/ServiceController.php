@@ -98,7 +98,6 @@ class ServiceController extends Controller
                 }
             }
             $path = $request->file('photo')->store('images/services', 'public');
-            // Store relative path; the model accessor will return the public URL.
             $services->photo_url = $path;
             Log::debug('ServiceController:updateServiceById - stored photo', ['id' => $id, 'path' => $path, 'photo_url' => $services->photo_url]);
         }
