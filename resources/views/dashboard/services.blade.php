@@ -12,7 +12,7 @@
       </div>
 
       <div class="ml-4">
-        <a href="{{ route('dashboard.servicios.create') }}" class="inline-flex items-center px-4 py-2 rounded-md text-white btn-green" data-nav style="background: var(--green);">
+  <a href="{{ route('dashboard.servicios.create') }}" data-role="admin" class="inline-flex items-center px-4 py-2 rounded-md text-white btn-green" data-nav style="background: var(--green);">
           @if(file_exists(public_path('icons/plus.svg')))
             @php
               $plus = file_get_contents(public_path('icons/plus.svg'));

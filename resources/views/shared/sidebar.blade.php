@@ -22,7 +22,7 @@
         @endphp
 
         <div class="mt-2">
-          @foreach($items as [$label, $route, $icon])
+            @foreach($items as [$label, $route, $icon])
             @php
               $map = [
                 'dashboard' => 'dashboard.home',
@@ -36,7 +36,14 @@
               $isActive = optional(request()->route())->getName() === $named;
             @endphp
 
-            <a href="{{ $url }}" class="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors w-full {{ $isActive ? 'bg-[var(--color-primary)] text-white' : 'text-gray-700 hover:bg-gray-50' }}" style="font-family: var(--font-subtitle);">
+            @php
+              $extraAttr = '';
+              // mark 'empleados' as admin-only in the UI
+              if ($route === 'empleados' || $route === 'servicios') {
+                $extraAttr = ' data-role="admin"';
+              }
+            @endphp
+            <a href="{{ $url }}" {!! $extraAttr !!} class="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors w-full {{ $isActive ? 'bg-[var(--color-primary)] text-white' : 'text-gray-700 hover:bg-gray-50' }}" style="font-family: var(--font-subtitle);">
               <img src="/icons/{{ $icon }}" alt="{{ $label }} icon" class="w-5 h-5 {{ $isActive ? 'filter brightness-0 invert' : '' }}">
               <span class="flex-1 font-semibold text-sm" style="font-family: var(--font-title);">{{ $label }}</span>
             </a>
