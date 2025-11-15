@@ -2,13 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Public Routes
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
+})->name('login');
 
-});
-// Dashboard grouped routes: render the corresponding dashboard view.
-// These return the full layout on normal requests and only the content fragment
-// when requested via X-Requested-With: XMLHttpRequest (our router fetches it).
+
+// Private Routes
+
 Route::get('/dashboard', function () {
     return view('dashboard.admin');
 })->name('dashboard.home');

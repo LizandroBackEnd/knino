@@ -26,22 +26,25 @@
     el.style.padding = '12px 16px';
     el.style.borderRadius = '8px';
     el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-    el.style.color = '#fff';
+    el.style.color = '#0f172a';
     el.style.fontSize = '14px';
     el.style.transition = 'transform 220ms ease, opacity 220ms ease';
     el.style.transform = 'translateY(8px)';
     el.style.opacity = '0';
+    el.style.background = '#ffffff';
+    el.style.borderLeft = '4px solid transparent';
+    el.style.padding = '12px 16px 12px 12px';
 
     switch (type) {
       case 'success':
-        el.style.background = 'linear-gradient(90deg,#16a34a,#059669)';
+        el.style.borderLeftColor = '#16a34a';
         break;
       case 'error':
-        el.style.background = 'linear-gradient(90deg,#dc2626,#b91c1c)';
+        el.style.borderLeftColor = '#dc2626';
         break;
       case 'info':
       default:
-        el.style.background = 'linear-gradient(90deg,#0ea5e9,#0369a1)';
+        el.style.borderLeftColor = '#0ea5e9';
         break;
     }
 

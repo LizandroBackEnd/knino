@@ -47,15 +47,9 @@
   </div>
 
   <div class="px-4 py-4">
-    @php
-      $logoutExists = \Illuminate\Support\Facades\Route::has('logout');
-      $logoutUrl = $logoutExists ? route('logout') : '#';
-    @endphp
-
     <div class="mb-3 border-t border-gray-200"></div>
 
-    
-    <a href="{{ $logoutUrl }}" class="flex items-center gap-3 text-red-500 {{ $logoutExists ? 'hover:text-red-700' : 'opacity-60 cursor-not-allowed' }}" style="font-family: var(--font-subtitle);">
+    <a href="#" id="logout-link" class="flex items-center gap-3 text-red-500 hover:text-red-700" style="font-family: var(--font-subtitle);">
         @if(file_exists(public_path('icons/logout.svg')))
             {!! file_get_contents(public_path('icons/logout.svg')) !!}
         @else

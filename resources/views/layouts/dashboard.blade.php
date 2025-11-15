@@ -19,7 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
         rel="stylesheet">
 
-  @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard-router.js', 'resources/js/toast.js', 'resources/js/alertDelete.js'])
+  @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard-router.js', 'resources/js/toast.js', 'resources/js/alertDelete.js', 'resources/js/logout.js'])
 </head>
 
 <body class="min-h-screen bg-neutral">
