@@ -24,7 +24,8 @@
 
 <body class="min-h-screen bg-neutral">
   <div class="flex">
-        @if(request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest')
+        @php $isFragment = request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest' || request()->query('ajax') == '1'; @endphp
+        @if($isFragment)
           <div id="dashboard-content">
             @yield('content')
           </div>
