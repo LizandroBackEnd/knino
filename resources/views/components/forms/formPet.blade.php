@@ -398,19 +398,21 @@
       const headers = { 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
-      try {
+        try {
         let url = apiUrl;
         if (isEdit) {
           formData.append('_method', 'PATCH');
           url = apiUrl + '/' + editId;
         }
 
-        const res = await fetch(url, {
+        const fetchOptions = {
           method: 'POST',
           headers: headers,
           body: formData,
           credentials: 'same-origin'
-        });
+        };
+
+  const res = await fetch(url, fetchOptions);
 
         if (res.status === 201 || res.status === 200) {
           if (window.showToast) showToast('Mascota guardada correctamente', { type: 'success' });

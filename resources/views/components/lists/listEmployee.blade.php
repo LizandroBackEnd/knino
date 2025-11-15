@@ -56,10 +56,10 @@
 
     async function fetchEmployees() {
       container.innerHTML = '<div class="col-span-2 text-center text-gray-500">Cargando empleados...</div>';
-      try {
-        const res = await fetch(apiUrl, { credentials: 'same-origin' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const items = await res.json();
+  try {
+  const res = await fetch(apiUrl, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const items = await res.json();
         renderEmployees(items || []);
       } catch (err) {
         console.error('Fetch employees failed', err);

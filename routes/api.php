@@ -18,6 +18,7 @@ Route::post('/register', [AuthController::class,  'register']);
 Route::post('/login', [AuthController::class,  'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
+
 Route::controller(ServiceController::class)->group(function () {
     Route::get('/services', 'getServices');
     Route::get('/services/{name}', 'getServiceByName');
@@ -54,8 +55,8 @@ Route::controller(PetController::class)->group(function () {
     Route::patch('/pets/{id}', 'updatePetById');
     Route::delete('/pets/{id}', 'deletePetById');
 });
+/*
 
-/*private routes
 Route::middleware([IsAdmin::class])->group((function () {
     Route::controller(ServiceController::class)->group(function () {
         Route::get('/services', 'getServices');

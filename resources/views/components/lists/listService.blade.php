@@ -17,9 +17,9 @@
   async function fetchAll() {
     container.innerHTML = '<div class="col-span-1 text-sm text-gray-500">Cargando servicios...</div>';
     try {
-      const res = await fetch(apiUrl, { headers: {'Accept':'application/json'} });
-      if (res.status === 200) {
-        const list = await res.json();
+    const res = await fetch(apiUrl, { headers: {'Accept':'application/json'} });
+        if (res.status === 200) {
+          const list = await res.json();
         renderList(Array.isArray(list) ? list : []);
         return;
       }

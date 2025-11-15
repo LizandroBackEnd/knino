@@ -45,7 +45,7 @@
     async function fetchPets() {
       container.innerHTML = '<div class="col-span-2 text-center text-gray-500">Cargando mascotas...</div>';
       try {
-        const res = await fetch(apiUrl, { credentials: 'same-origin' });
+      const res = await fetch(apiUrl, { credentials: 'same-origin' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const items = await res.json();
         renderPets(items || []);

@@ -106,7 +106,7 @@
     async function fetchClients() {
       container.innerHTML = '<div class="text-center text-gray-500">Cargando clientes...</div>';
       try {
-        const res = await fetch(apiUrl, { credentials: 'same-origin' });
+  const res = await fetch(apiUrl, { credentials: 'same-origin' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const clients = await res.json();
         renderClients(clients || []);

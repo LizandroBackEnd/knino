@@ -37,7 +37,7 @@ export default function initModalBreed() {
         return;
       }
       try {
-        const res = await fetch(breedEndpoint + '/' + encodeURIComponent(species), { headers: { 'Accept': 'application/json' } });
+  const res = await fetch(breedEndpoint + '/' + encodeURIComponent(species), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) {
           breedSelect.innerHTML = '<option value="">No se encontraron razas</option>';
           return;
