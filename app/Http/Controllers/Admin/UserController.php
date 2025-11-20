@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class EmployeesController extends Controller
+class UserController extends Controller
 {
-    public function addEmployee(Request $request)
+    public function addUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -35,36 +35,36 @@ class EmployeesController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        return response()->json(['message' => 'Employee added successfully'], 201);
+        return response()->json(['message' => 'User added successfully'], 201);
     }
 
-    public function getEmployees()
+    public function getUsers()
     {
-        $employees = User::all();
+        $users = User::all();
 
-        if ($employees->isEmpty()) {
-            return response()->json(['message' => 'No employees found'], 404);
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'user not found'], 404);
         }
-        return response()->json($employees, 200);
+        return response()->json($users, 200);
     }
 
-    public function getEmployeeByEmail($email)
+    public function getUserByEmail($email)
     {
-        $employee = User::where('email',$email)->first();
+        $user = User::where('email',$email)->first();
 
-        if (!$employee) {
-            return response()->json(['message' => 'Employee not found'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
-        return response()->json($employee, 200);
+        return response()->json($user, 200);
 
     }
 
-    public function updateEmployeeById(Request $request, $id)
+    public function updateUserById(Request $request, $id)
     {
-        $employee = User::find($id);
+        $user = User::find($id);
 
-        if (!$employee) {
-            return response()->json(['message' => 'Employee not found'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -82,39 +82,39 @@ class EmployeesController extends Controller
         }
 
         if ($request->has('name')) {
-            $employee->name = $request->get('name');
+            $user->name = $request->get('name');
         }
         if ($request->has('last_name_primary')) {
-            $employee->last_name_primary = $request->get('last_name_primary');
+            $user->last_name_primary = $request->get('last_name_primary'); 
         }
         if ($request->has('last_name_secondary')) {
-            $employee->last_name_secondary = $request->get('last_name_secondary');
+            $user->last_name_secondary = $request->get('last_name_secondary');
         }
         if ($request->has('phone')) {
-            $employee->phone = $request->get('phone');
+            $user->phone = $request->get('phone');
         }
         if ($request->has('role')) {
-            $employee->role = $request->get('role');
+            $user->role = $request->get('role');
         }
         if ($request->has('email')) {
-            $employee->email = $request->get('email');
+            $user->email = $request->get('email');
         }
         if ($request->has('password')) {
-            $employee->password = bcrypt($request->get('password'));
+            $user->password = bcrypt($request->get('password'));
         }
 
-        $employee->update();
-        return response()->json(['message' => 'Employee updated successfully'], 200);
+        $user->update();
+        return response()->json(['message' => 'User updated successfully'], 200);
     }
 
-    public function deleteEmployeeById($id)
+    public function deleteUserById($id)
     {
-        $employee = User::find($id);
+        $user = User::find($id);
 
-        if (!$employee) {
-            return response()->json(['message' => 'Employee not found'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
-        $employee->delete();
-        return response()->json(['message' => 'Employee deleted successfully'], 200);
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully'], 200);
     }
 }

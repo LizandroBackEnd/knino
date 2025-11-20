@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\EmployeesController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BreedController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Middleware\IsAdmin;
@@ -27,6 +28,14 @@ Route::controller(ServiceController::class)->group(function () {
     Route::post('/services', 'addService');
     Route::patch('/services/{id}', 'updateServiceById');
     Route::delete('/services/{id}', 'deleteServiceById');
+});
+
+Route::controller(UserController::class)->group(function () {
+    Route::get('/users', 'getUsers');
+    Route::get('/users/{email}', 'getUserByEmail');
+    Route::post('/users', 'addUser');
+    Route::patch('/users/{id}', 'updateUserById');
+    Route::delete('/users/{id}', 'deleteUserById');
 });
 
 Route::controller(EmployeesController::class)->group(function () {
