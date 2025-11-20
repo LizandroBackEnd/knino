@@ -391,6 +391,34 @@
       submit.disabled = true;
       submit.classList.add('opacity-70');
 
+      // Validación cliente en español
+      function addFieldError(name, message) {
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!field) return;
+        field.setAttribute('aria-invalid', 'true');
+        field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+        const p = document.createElement('p');
+        p.className = 'text-sm text-red-600 mt-1';
+        p.textContent = message;
+        field.parentNode.appendChild(p);
+      }
+
+      const nameVal = (form.querySelector('[name="name"]').value || '').trim();
+      const birthVal = (form.querySelector('[name="birth_date"]').value || '').trim();
+      const colorVal = (form.querySelector('[name="color"]').value || '').trim();
+      const speciesVal = (form.querySelector('[name="species"]').value || '').trim();
+      const sexVal = (form.querySelector('[name="sex"]').value || '').trim();
+      const breedVal = (form.querySelector('[name="breed_id"]').value || '').trim();
+      const clientIdVal = (form.querySelector('[name="client_id"]').value || '').trim();
+
+      if (!nameVal) { addFieldError('name', 'Debes ingresar el nombre de la mascota.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!birthVal) { addFieldError('birth_date', 'Debes ingresar la fecha de nacimiento.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!colorVal) { addFieldError('color', 'Debes ingresar el color.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!speciesVal) { addFieldError('species', 'Debes seleccionar una especie.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!sexVal) { addFieldError('sex', 'Debes seleccionar el sexo.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!breedVal) { addFieldError('breed_id', 'Debes seleccionar una raza.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!clientIdVal) { addFieldError('client_search', 'Debes seleccionar un cliente.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+
       const formData = new FormData(form);
       formData.delete('client_search');
 

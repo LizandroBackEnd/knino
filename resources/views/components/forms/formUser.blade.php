@@ -150,24 +150,37 @@
       const submit = submitBtn;
       if (submit) { submit.disabled = true; submit.classList.add('opacity-70'); }
 
+
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
-      // Validación cliente: teléfono solo números
-      const phoneVal = (data.phone || '').toString().trim();
-      if (!/^[0-9]+$/.test(phoneVal)) {
-        const field = form.querySelector('[name="phone"]');
-        if (field) {
-          field.setAttribute('aria-invalid', 'true');
-          field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
-          const p = document.createElement('p');
-          p.className = 'text-sm text-red-600 mt-1';
-          p.textContent = 'El teléfono debe contener solo números.';
-          field.parentNode.appendChild(p);
-        }
-        if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
-        return;
+      // Validación cliente en español (campos requeridos y formato)
+      function addFieldError(name, message) {
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!field) return;
+        field.setAttribute('aria-invalid', 'true');
+        field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+        const p = document.createElement('p');
+        p.className = 'text-sm text-red-600 mt-1';
+        p.textContent = message;
+        field.parentNode.appendChild(p);
       }
+
+      if (!data.name || String(data.name).trim() === '') { addFieldError('name', 'Debes ingresar el nombre.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.last_name_primary || String(data.last_name_primary).trim() === '') { addFieldError('last_name_primary', 'Debes ingresar el apellido paterno.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.email || String(data.email).trim() === '') { addFieldError('email', 'Debes ingresar un correo electrónico.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(data.email).trim())) { addFieldError('email', 'Por favor ingresa un correo electrónico válido.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.role || String(data.role).trim() === '') { addFieldError('role', 'Debes seleccionar un rol.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+
+      // Contraseña obligatoria al crear
+      if (!isEdit) {
+        if (!data.password || String(data.password).trim() === '') { addFieldError('password', 'Debes ingresar una contraseña.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+        if (data.password !== data.password_confirmation) { addFieldError('password_confirmation', 'Las contraseñas no coinciden.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      }
+
+      // Teléfono solo números
+      const phoneVal = (data.phone || '').toString().trim();
+      if (!/^[0-9]+$/.test(phoneVal)) { addFieldError('phone', 'El teléfono debe contener solo números.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
       data.phone = String(phoneVal);
 
       if (isEdit && (!data.password || data.password === '')) {

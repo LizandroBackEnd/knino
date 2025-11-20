@@ -143,6 +143,27 @@
       const submit = document.getElementById('service-create-submit');
       submit.disabled = true;
       submit.classList.add('opacity-70');
+
+      // Validación cliente en español
+      function addFieldError(name, message) {
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!field) return;
+        field.setAttribute('aria-invalid', 'true');
+        field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+        const p = document.createElement('p');
+        p.className = 'text-sm text-red-600 mt-1';
+        p.textContent = message;
+        field.parentNode.appendChild(p);
+      }
+
+      const nameVal = (form.querySelector('[name="name"]').value || '').trim();
+      const descVal = (form.querySelector('[name="description"]').value || '').trim();
+      const priceVal = (form.querySelector('[name="price"]').value || '').trim();
+      if (!nameVal) { addFieldError('name', 'Debes ingresar el nombre del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!descVal) { addFieldError('description', 'Debes ingresar la descripción del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (!priceVal) { addFieldError('price', 'Debes ingresar el precio del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+      if (isNaN(Number(priceVal)) || Number(priceVal) < 0) { addFieldError('price', 'El precio debe ser un número válido mayor o igual a 0.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+
       const formData = new FormData(form);
           try {
             for (const pair of formData.entries()) {

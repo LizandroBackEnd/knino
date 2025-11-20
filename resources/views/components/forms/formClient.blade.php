@@ -143,6 +143,25 @@
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
+      // Validación cliente en español
+      function addFieldError(name, message) {
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!field) return;
+        field.setAttribute('aria-invalid', 'true');
+        field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+        const p = document.createElement('p');
+        p.className = 'text-sm text-red-600 mt-1';
+        p.textContent = message;
+        field.parentNode.appendChild(p);
+      }
+
+      if (!data.name || String(data.name).trim() === '') { addFieldError('name', 'Debes ingresar el nombre.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.last_name_primary || String(data.last_name_primary).trim() === '') { addFieldError('last_name_primary', 'Debes ingresar el apellido paterno.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.phone || String(data.phone).trim() === '') { addFieldError('phone', 'Debes ingresar un teléfono.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!/^[0-9]+$/.test(String(data.phone).trim())) { addFieldError('phone', 'El teléfono debe contener solo números.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.email || String(data.email).trim() === '') { addFieldError('email', 'Debes ingresar un correo electrónico.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(data.email).trim())) { addFieldError('email', 'Por favor ingresa un correo electrónico válido.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+
       const tokenInput = form.querySelector('input[name="_token"]');
       const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
