@@ -30,6 +30,14 @@ Route::get('/dashboard/empleados/create', function () {
 })->name('dashboard.empleados.create');
 
 
+Route::get('/dashboard/users', function () {
+    return view('dashboard.users');
+})->name('dashboard.users');
+Route::get('/dashboard/users/create', function () {
+    return view('dashboard.users', ['showCreate' => true]);
+})->name('dashboard.users.create');
+
+
 Route::get('/dashboard/clientes', function () {
     return view('dashboard.clients');
 })->name('dashboard.clientes');

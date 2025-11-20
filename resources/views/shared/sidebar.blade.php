@@ -17,7 +17,8 @@
             ['Clientes', 'clientes', 'clients.svg'],
             ['Mascotas', 'mascotas', 'pets.svg'],
             ['Servicios', 'servicios', 'services.svg'],
-            ['Empleados', 'empleados', 'employees.svg'], 
+            ['Empleados', 'empleados', 'employees.svg'],
+            ['Usuarios', 'usuarios', 'users-plus.svg'],
           ];
         @endphp
 
@@ -30,6 +31,7 @@
                 'mascotas' => 'dashboard.mascotas',
                 'servicios' => 'dashboard.servicios',
                 'empleados' => 'dashboard.empleados',
+                'usuarios' => 'dashboard.users',
               ];
               $named = isset($map[$route]) ? $map[$route] : $route;
               $url = \Illuminate\Support\Facades\Route::has($named) ? route($named) : '#';
@@ -38,8 +40,8 @@
 
             @php
               $extraAttr = '';
-              // mark 'empleados' as admin-only in the UI
-              if ($route === 'empleados' || $route === 'servicios') {
+              // mark certain routes as admin-only in the UI
+              if (in_array($route, ['empleados','servicios','usuarios'])) {
                 $extraAttr = ' data-role="admin"';
               }
             @endphp
