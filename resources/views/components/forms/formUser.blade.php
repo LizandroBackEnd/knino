@@ -153,6 +153,23 @@
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
+      // Validación cliente: teléfono solo números
+      const phoneVal = (data.phone || '').toString().trim();
+      if (!/^[0-9]+$/.test(phoneVal)) {
+        const field = form.querySelector('[name="phone"]');
+        if (field) {
+          field.setAttribute('aria-invalid', 'true');
+          field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+          const p = document.createElement('p');
+          p.className = 'text-sm text-red-600 mt-1';
+          p.textContent = 'El teléfono debe contener solo números.';
+          field.parentNode.appendChild(p);
+        }
+        if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
+        return;
+      }
+      data.phone = String(phoneVal);
+
       if (isEdit && (!data.password || data.password === '')) {
         delete data.password;
         delete data.password_confirmation;

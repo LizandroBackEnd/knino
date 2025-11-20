@@ -49,6 +49,15 @@
       return (u.name || '') + ' ' + (u.last_name_primary || '') + (u.last_name_secondary ? ' ' + u.last_name_secondary : '');
     }
 
+    function roleLabel(r) {
+      if (!r && r !== 0) return '';
+      const s = String(r).toLowerCase();
+      if (s === 'admin') return 'Administrador';
+      if (s === 'receptionist') return 'Recepción';
+      if (s === 'veterinarian') return 'Veterinario';
+      return String(r);
+    }
+
     function debounce(fn, delay = 300) {
       let t;
       return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
@@ -75,11 +84,14 @@
       }
 
       items.forEach(u => {
+        const roleText = roleLabel(u.role || '');
+        const roleBlock = roleText ? (`<div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${roleIcon}</span><span>${escapeHtml(roleText)}</span></div>`) : '';
+
         const card = el(`
           <div class="bg-white rounded shadow p-4">
             <div>
               <div class="text-base font-semibold text-gray-800">${escapeHtml(formatName(u))}</div>
-              <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${roleIcon}</span><span>${escapeHtml(u.role || '')}</span></div>
+              ${roleBlock}
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${mailIcon}</span><span>${escapeHtml(u.email || '')}</span></div>
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${phoneIcon}</span><span>${escapeHtml(u.phone || '')}</span></div>
             </div>
