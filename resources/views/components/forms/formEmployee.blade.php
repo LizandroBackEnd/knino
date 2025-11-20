@@ -54,13 +54,6 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700">Rol <span class="text-red-500">*</span></label>
-          <select name="role" class="form-control mt-1 block w-full" required>
-            <option value="">Selecciona un rol</option>
-            <option value="admin">Admin</option>
-            <option value="receptionist">Recepción</option>
-            <option value="veterinarian">Veterinario</option>
-          </select>
         </div>
 
         <div class="md:col-span-2">
@@ -68,15 +61,6 @@
           <input name="email" type="email" placeholder="correo@ejemplo.com" class="form-control mt-1 block w-full" required>
         </div>
 
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Contraseña <span class="text-red-500">*</span></label>
-          <input name="password" type="password" placeholder="********" class="form-control mt-1 block w-full">
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Confirmar contraseña <span class="text-red-500">*</span></label>
-          <input name="password_confirmation" type="password" placeholder="********" class="form-control mt-1 block w-full">
-        </div>
       </div>
 
       <div class="mt-6">
@@ -96,7 +80,7 @@
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
 
-    // detect edit mode
+  // detect edit mode
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
     let isEdit = !!editId;
@@ -105,8 +89,8 @@
     const submitBtn = document.getElementById('employee-create-submit');
 
     if (isEdit) {
-      if (titleEl) titleEl.textContent = 'Editar Empleado';
-      if (submitBtn) submitBtn.textContent = 'Guardar cambios';
+  if (titleEl) titleEl.textContent = 'Editar Empleado';
+  if (submitBtn) submitBtn.textContent = 'Guardar cambios';
       (async function prefill() {
         try {
           const res = await fetch(apiUrl, { credentials: 'same-origin' });
@@ -118,7 +102,6 @@
           form.querySelector('[name="last_name_primary"]').value = emp.last_name_primary || '';
           form.querySelector('[name="last_name_secondary"]').value = emp.last_name_secondary || '';
           form.querySelector('[name="phone"]').value = emp.phone || '';
-          form.querySelector('[name="role"]').value = emp.role || '';
           form.querySelector('[name="email"]').value = emp.email || '';
         } catch (err) {
           console.error('Prefill failed', err);
@@ -153,10 +136,33 @@
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
-      if (isEdit && (!data.password || data.password === '')) {
-        delete data.password;
-        delete data.password_confirmation;
+      // Validación cliente: campos requeridos y mensajes en español
+      function addFieldError(name, message) {
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!field) return;
+        field.setAttribute('aria-invalid', 'true');
+        // remove previous
+        field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
+        const p = document.createElement('p');
+        p.className = 'text-sm text-red-600 mt-1';
+        p.textContent = message;
+        field.parentNode.appendChild(p);
       }
+
+      // Required checks
+      if (!data.name || String(data.name).trim() === '') { addFieldError('name', 'Debes ingresar el nombre.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.last_name_primary || String(data.last_name_primary).trim() === '') { addFieldError('last_name_primary', 'Debes ingresar el apellido paterno.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.phone || String(data.phone).trim() === '') { addFieldError('phone', 'Debes ingresar un teléfono.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      if (!data.email || String(data.email).trim() === '') { addFieldError('email', 'Debes ingresar un correo electrónico.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+
+      // Email básico
+      const emailVal = String(data.email).trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { addFieldError('email', 'Por favor ingresa un correo electrónico válido.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+
+      // Teléfono solo números
+      const phoneVal = String(data.phone).trim();
+      if (!/^[0-9]+$/.test(phoneVal)) { addFieldError('phone', 'El teléfono debe contener solo números.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
+      data.phone = String(phoneVal);
 
       const tokenInput = form.querySelector('input[name="_token"]');
       const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };

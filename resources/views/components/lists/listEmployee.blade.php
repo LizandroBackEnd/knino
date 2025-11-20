@@ -19,7 +19,6 @@
 
   $mailSvg = load_icon('mail.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m0 8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2z"/></svg>');
   $phoneSvg = load_icon('phone.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.6a1 1 0 01.95.68L11 7l-2 2a12 12 0 006 6l2-2 3.32 1.45a1 1 0 01.68.95V19a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/></svg>');
-  $roleSvg = load_icon('employees.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-6a4 4 0 11-8 0 4 4 0 018 0z"/></svg>');
 @endphp
 
 <div id="employees-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -35,9 +34,8 @@
     const editBase = @json($formUrl);
     const csrfToken = @json($csrf);
 
-    const mailIcon = @json($mailSvg);
-    const phoneIcon = @json($phoneSvg);
-    const roleIcon = @json($roleSvg);
+  const mailIcon = @json($mailSvg);
+  const phoneIcon = @json($phoneSvg);
 
     function el(html) {
       const template = document.createElement('template');
@@ -79,7 +77,7 @@
           <div class="bg-white rounded shadow p-4">
             <div>
               <div class="text-base font-semibold text-gray-800">${escapeHtml(formatName(emp))}</div>
-              <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${roleIcon}</span><span>${escapeHtml(emp.role || '')}</span></div>
+              <!-- Rol oculto en la lista de empleados -->
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${mailIcon}</span><span>${escapeHtml(emp.email || '')}</span></div>
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${phoneIcon}</span><span>${escapeHtml(emp.phone || '')}</span></div>
             </div>
