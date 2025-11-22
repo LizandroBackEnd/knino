@@ -70,8 +70,9 @@
 				$client = $a->client ?? ($pet ? $pet->client : null);
 				$service = $a->service;
 				$emp = $a->employee;
+				$st = $a->status ?? StatusEnum::SCHEDULED->value;
 			@endphp
-			<div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-green-400">
+			<div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-green-400" data-appt-status="{{ $st }}">
 				<div class="p-4 flex items-start">
 					<div class="flex-shrink-0 mr-4">
 						<div class="bg-green-500 text-white rounded-md px-3 py-2 text-center">
@@ -96,7 +97,6 @@
 							</div>
 
 											<div class="ml-4 flex-shrink-0 text-sm">
-												@php $st = $a->status ?? StatusEnum::SCHEDULED->value; @endphp
 												<span data-appt-id="{{ $a->id }}" class="status-badge {{ statusClass($st) }}">{{ statusLabel($st) }}</span>
 											</div>
 						</div>
