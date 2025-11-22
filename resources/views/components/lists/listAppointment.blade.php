@@ -44,11 +44,16 @@
 	function statusClass($s) {
 		$norm = normalizeStatus($s);
 		return match ($norm) {
-			StatusEnum::SCHEDULED->value, StatusEnum::REPROGRAMADA->value => 'inline-block px-2 py-1 rounded-full bg-green-100 text-green-700',
-			StatusEnum::COMPLETED->value => 'inline-block px-2 py-1 rounded-full bg-blue-100 text-blue-700',
-			'pending' => 'inline-block px-2 py-1 rounded-full bg-yellow-100 text-yellow-700',
+			// Programada -> azul
+			StatusEnum::SCHEDULED->value => 'inline-block px-2 py-1 rounded-full bg-blue-100 text-blue-700',
+			// Reprogramada -> amarillo
+			StatusEnum::REPROGRAMADA->value => 'inline-block px-2 py-1 rounded-full bg-yellow-100 text-yellow-700',
+			// Completada -> verde
+			StatusEnum::COMPLETED->value => 'inline-block px-2 py-1 rounded-full bg-green-100 text-green-700',
+			// Cancelada -> rojo
 			StatusEnum::CANCELADA->value => 'inline-block px-2 py-1 rounded-full bg-red-100 text-red-700',
-			StatusEnum::EXPIRED->value => 'inline-block px-2 py-1 rounded-full bg-gray-100 text-gray-700',
+			// Expirada -> morado
+			StatusEnum::EXPIRED->value => 'inline-block px-2 py-1 rounded-full bg-purple-100 text-purple-700',
 			default => 'inline-block px-2 py-1 rounded-full bg-gray-100 text-gray-700',
 		};
 	}
@@ -96,18 +101,33 @@
 											</div>
 						</div>
 
-						<div class="mt-4 grid grid-cols-2 gap-3">
-							<a href="{{ url('/dashboard/citas/create') }}?reschedule={{ $a->id }}" class="flex items-center justify-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150" data-nav>
+						<div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+							@if((($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
+							<a href="{{ url('/dashboard/citas/create') }}?reschedule={{ $a->id }}" data-id="{{ $a->id }}" class="flex items-center justify-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150" data-nav>
 								<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-gray-100 rounded-full"><img src="/icons/edit.svg" alt="Reagendar" class="w-3 h-3" /></span>
 								Reagendar cita
 							</a>
+							@endif
 
-											@if(($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value)
-											<button type="button" class="btn-cancel flex items-center justify-center px-3 py-2 bg-white border border-red-100 rounded-md text-sm hover:bg-red-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
-												<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-red-100 rounded-full"><img src="/icons/trash.svg" alt="Cancelar" class="w-3 h-3" /></span>
-												<span class="text-red-700 font-medium">Cancelar cita</span>
-											</button>
-											@endif
+							{{-- Completar cita button (hidden when already completed or canceled) --}}
+							@if((($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value) && (($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
+							<div class="flex items-center justify-center">
+								<button type="button" class="btn-complete flex items-center justify-center px-3 py-2 bg-white border border-green-100 rounded-md text-sm hover:bg-green-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
+									<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-green-100 rounded-full"><img src="/icons/checks.svg" alt="Completar" class="w-3 h-3" /></span>
+									<span class="text-green-700 font-medium">Completar cita</span>
+								</button>
+							</div>
+							@endif
+
+							{{-- Cancelar in right column (hidden if already canceled) --}}
+							@if((($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value) && (($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
+							<div class="flex items-center justify-center">
+								<button type="button" class="btn-cancel flex items-center justify-center px-3 py-2 bg-white border border-red-100 rounded-md text-sm hover:bg-red-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
+									<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-red-100 rounded-full"><img src="/icons/trash.svg" alt="Cancelar" class="w-3 h-3" /></span>
+									<span class="text-red-700 font-medium">Cancelar cita</span>
+								</button>
+							</div>
+							@endif
 						</div>
 					</div>
 				</div>
@@ -140,14 +160,45 @@
 								statusBadge.textContent = 'Cancelada';
 								statusBadge.className = 'status-badge inline-block px-2 py-1 rounded-full bg-red-100 text-red-700';
 							}
-							// disable the cancel button to avoid double action
-							this.disabled = true;
-							this.classList.add('opacity-50', 'cursor-not-allowed');
+							// Remove action buttons except 'Reagendar' so only re-schedule remains
+							const toRemove = document.querySelectorAll('.btn-complete[data-id="' + id + '"], .btn-cancel[data-id="' + id + '"]');
+							toRemove.forEach(el => el.remove());
 							return;
 						}
 				const txt = await res.text().catch(()=>null);
 				if (window.showToast) window.showToast('No se pudo cancelar la cita', { type: 'error' });
 				console.error('Cancel failed', res.status, txt);
+			} catch (err) { console.error(err); if (window.showToast) window.showToast('Error de red', { type: 'error' }); }
+		});
+	});
+
+	// Complete buttons: mark appointment as completed
+	container.querySelectorAll('.btn-complete').forEach(btn => {
+					btn.addEventListener('click', async function(){
+						const id = this.getAttribute('data-id');
+			try {
+				const _tokenEl = document.querySelector('input[name="_token"]');
+				const token = _tokenEl ? _tokenEl.value : null;
+				const headers = {};
+				if (token) headers['X-CSRF-TOKEN'] = token;
+				const res = await fetch('/api/appointments/' + encodeURIComponent(id) + '/complete', { method: 'POST', headers, credentials: 'same-origin' });
+					if (res.ok) {
+						// Show success toast
+						if (window.showToast) window.showToast('Cita completada', { type: 'success' });
+						// Update status badge to Completada (green)
+						const statusBadge = document.querySelector('.status-badge[data-appt-id="' + id + '"]');
+						if (statusBadge) {
+							statusBadge.textContent = 'Completada';
+							statusBadge.className = 'status-badge inline-block px-2 py-1 rounded-full bg-green-100 text-green-700';
+						}
+						// Remove all action buttons/links for this appointment (reagendar, completar, cancelar)
+						const toRemove = document.querySelectorAll('.btn-complete[data-id="' + id + '"], .btn-cancel[data-id="' + id + '"], a[data-id="' + id + '"]');
+						toRemove.forEach(el => el.remove());
+						return;
+					}
+				const txt = await res.text().catch(()=>null);
+				if (window.showToast) window.showToast('No se pudo completar la cita', { type: 'error' });
+				console.error('Complete failed', res.status, txt);
 			} catch (err) { console.error(err); if (window.showToast) window.showToast('Error de red', { type: 'error' }); }
 		});
 	});
