@@ -126,10 +126,28 @@ function runInlineScripts(el) {
       }, { once: true });
       document.head.appendChild(script);
     } else {
-      // inline script: execute synchronously by appending
-      if (!script.type) script.type = 'module';
-      script.textContent = oldScript.textContent;
-      document.head.appendChild(script);
+      // inline script: attempt to parse before executing to avoid uncaught global SyntaxErrors
+      const src = oldScript.textContent || '';
+      try {
+        // Try to parse the code by creating a Function. This will throw on syntax errors.
+        // Note: This won't support module-specific syntax (import/export); if the script declares a type attribute
+        // the original type will be preserved above and this branch will be skipped only for inline scripts.
+        new Function(src);
+      } catch (syntaxErr) {
+        try { console.error('Skipping inline script due to parse error:', syntaxErr, '\n--- script start ---\n' + src.slice(0, 2000) + '\n--- script end ---'); } catch(e){}
+        // remove the original script and continue without executing it
+        oldScript.parentNode && oldScript.parentNode.removeChild(oldScript);
+        return resolve();
+      }
+
+      // If parsing succeeded, append and execute the inline script safely
+      if (!script.type) script.type = 'text/javascript';
+      script.textContent = src;
+      try {
+        document.head.appendChild(script);
+      } catch (err) {
+        try { console.error('Inline script execution error (append):', err, '\n--- script start ---\n' + src.slice(0, 2000) + '\n--- script end ---'); } catch(e){}
+      }
       // remove immediately after execution
       script.parentNode && script.parentNode.removeChild(script);
       resolve();

@@ -51,3 +51,22 @@ Route::get('/dashboard/mascotas', function () {
 Route::get('/dashboard/mascotas/create', function () {
     return view('dashboard.pets', ['showCreate' => true]);
 })->name('dashboard.mascotas.create');
+
+// Appointments (dashboard)
+Route::get('/dashboard/citas', function () {
+    return view('dashboard.appointment');
+})->name('dashboard.citas');
+use Illuminate\Http\Request;
+use App\Models\Appointment;
+
+Route::get('/dashboard/citas/create', function (Request $request) {
+    // Always provide the `appointment` key (nullable) so the blade component
+    // can reference $appointment safely (avoids Undefined variable errors).
+    $data = ['showCreate' => true, 'appointment' => null];
+    $reschedule = $request->query('reschedule');
+    if ($reschedule) {
+        $appt = Appointment::with(['pet.client', 'service', 'employee'])->find($reschedule);
+        if ($appt) $data['appointment'] = $appt;
+    }
+    return view('dashboard.appointment', $data);
+})->name('dashboard.citas.create');

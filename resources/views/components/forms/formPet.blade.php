@@ -368,7 +368,7 @@
             if (pet.breed_id) {
               const opt = document.createElement('option');
               opt.value = pet.breed_id;
-              opt.textContent = pet.breed?.name ?? 'Raza';
+              opt.textContent = (pet.breed && pet.breed.name) ? pet.breed.name : 'Raza';
               breedSelect.innerHTML = '';
               breedSelect.appendChild(opt);
               breedSelect.value = pet.breed_id;

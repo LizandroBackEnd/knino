@@ -52,11 +52,11 @@ class ServiceController extends Controller
     }
 
     public function getServiceByName($name) {
-        $service = Service::whereRaw('UPPER(name) = ?', [strtoupper($name)])->first();
-        if (!$service) {
-            return response()->json(['message' => 'Service not found'], 404);
-        }
-        return response()->json($service, 200);
+        // Support partial, case-insensitive search and return multiple matches
+        $term = urldecode($name);
+        $termLower = mb_strtolower($term, 'UTF-8');
+        $services = Service::whereRaw('LOWER(name) LIKE ?', ["%{$termLower}%"])->get();
+        return response()->json($services, 200);
     }
 
     public function updateServiceById(Request $request, $id) {

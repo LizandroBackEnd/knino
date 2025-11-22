@@ -9,9 +9,12 @@ use App\Models\Appointment;
 use App\Models\Employees;
 use App\Models\EmployeeSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use InvalidArgumentException;
+use App\Models\enums\StatusEnum;
 
 class AppointmentController extends Controller
 {
@@ -69,6 +72,45 @@ class AppointmentController extends Controller
 
         $vets = $vetsQuery->get();
         return response()->json($vets);
+    }
+
+    /**
+     * Return a single appointment with relations for prefilling the reschedule form.
+     */
+    public function getAppointment($id)
+    {
+        try {
+            $appointment = Appointment::with(['pet.client', 'service', 'employee'])->find($id);
+        } catch (\Exception $e) {
+            // return exception info in debug while troubleshooting
+            $debug = [
+                'error' => 'exception_loading_appointment',
+                'exception_message' => $e->getMessage(),
+                'exception_trace' => substr($e->getTraceAsString(), 0, 1000),
+                'auth_user_id' => Auth::id(),
+                'requested_id' => $id,
+            ];
+            Log::debug('getAppointment exception', $debug);
+            return response()->json(['debug' => $debug], 500);
+        }
+
+        if (! $appointment) {
+            $debug = [
+                'message' => 'Appointment not found',
+                'auth_user_id' => Auth::id(),
+                'requested_id' => $id,
+            ];
+            Log::debug('getAppointment not found', $debug);
+            return response()->json(['debug' => $debug], 404);
+        }
+
+        $debug = [
+            'message' => 'Appointment loaded',
+            'auth_user_id' => Auth::id(),
+            'requested_id' => $id,
+        ];
+        // include debug object alongside the appointment so the frontend can inspect it
+        return response()->json(['debug' => $debug, 'appointment' => $appointment], 200);
     }
 
     public function scheduleAppointment(Request $request)
@@ -172,7 +214,7 @@ class AppointmentController extends Controller
             'price' => $price,
             'scheduled_at' => $scheduledAt,
             'notes' => $data['notes'] ?? null,
-            'status' => 'scheduled',
+            'status' => StatusEnum::SCHEDULED->value,
         ]);
 
         return response()->json($appointment, 201);
@@ -184,10 +226,10 @@ class AppointmentController extends Controller
         if (! $appointment) {
             return response()->json(['error' => 'Appointment not found'], 404);
         }
-        if ($appointment->status === 'canceled') {
+        if ($appointment->status === StatusEnum::CANCELADA->value) {
             return response()->json(['error' => 'Cannot complete a canceled appointment'], 422);
         }
-        $appointment->status = 'completed';
+        $appointment->status = StatusEnum::COMPLETED->value;
         $appointment->save();
         return response()->json($appointment, 200);
     }
@@ -265,7 +307,7 @@ class AppointmentController extends Controller
         }
 
         $appointment->scheduled_at = $scheduledAt;
-        $appointment->status = 'scheduled';
+            $appointment->status = StatusEnum::REPROGRAMADA->value;
         $appointment->save();
         return response()->json($appointment, 200);
     }
@@ -276,7 +318,7 @@ class AppointmentController extends Controller
         if (! $appointment) {
             return response()->json(['error' => 'Appointment not found'], 404);
         }
-        $appointment->status = 'canceled';
+        $appointment->status = StatusEnum::CANCELADA->value;
         $appointment->save();
         return response()->json(['message' => 'Appointment canceled', 'appointment' => $appointment], 200);
     }

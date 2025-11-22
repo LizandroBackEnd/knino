@@ -118,7 +118,8 @@
         const ok = window.confirmDelete ? await window.confirmDelete('¿Eliminar este servicio?') : confirm('¿Eliminar este servicio?');
         if (!ok) return;
         try {
-          const token = document.querySelector('input[name="_token"]')?.value;
+          const _tokenEl = document.querySelector('input[name="_token"]');
+          const token = _tokenEl ? _tokenEl.value : null;
           const headers = { 'Accept':'application/json' };
           if (token) headers['X-CSRF-TOKEN'] = token;
           const res = await fetch(apiUrl + '/' + s.id, { method: 'DELETE', headers, credentials: 'same-origin' });

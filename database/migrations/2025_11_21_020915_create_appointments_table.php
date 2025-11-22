@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('price', 8, 2);
             $table->dateTime('scheduled_at');
             $table->text('notes')->nullable();
-            $table->string('status')->default('scheduled');
+            $table->string('status')->default('programada');
             $table->timestamps();
             $table->index(['employee_id', 'scheduled_at']);
         });

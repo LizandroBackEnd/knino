@@ -67,12 +67,20 @@ class PetController extends Controller
 
     public function getPetByName($name)
     {
-        $pet = Pet::with(['breed', 'client'])->whereRaw('UPPER(name) = ?', [strtoupper($name)])->first();
+        // Allow partial, case-insensitive search by pet name or client name(s)
+        $term = urldecode($name);
+        $termLower = mb_strtolower($term, 'UTF-8');
 
-        if (!$pet) {
-            return response()->json(['message' => 'Pet not found'], 404);
-        }
-        return response()->json($pet, 200);
+        $query = Pet::with(['breed', 'client'])
+            ->whereRaw('LOWER(name) LIKE ?', ["%{$termLower}%"])
+            ->orWhereHas('client', function($q) use ($termLower) {
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$termLower}%"]) 
+                  ->orWhereRaw('LOWER(last_name_primary) LIKE ?', ["%{$termLower}%"]) 
+                  ->orWhereRaw('LOWER(last_name_secondary) LIKE ?', ["%{$termLower}%"]);
+            });
+
+        $pets = $query->get();
+        return response()->json($pets, 200);
     }
 
     public function updatePetById(Request $request, $id)

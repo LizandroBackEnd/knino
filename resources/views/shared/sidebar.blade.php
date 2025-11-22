@@ -11,11 +11,12 @@
       <div class="mt-4 border-t border-gray-200"></div>
 
       <nav class="mt-4">
-        @php
+          @php
           $items = [
             ['Dashboard', 'dashboard', 'dashboard.svg'],
             ['Clientes', 'clientes', 'clients.svg'],
             ['Mascotas', 'mascotas', 'pets.svg'],
+            ['Programar cita', 'citas', 'week.svg'],
             ['Servicios', 'servicios', 'services.svg'],
             ['Empleados', 'empleados', 'employees.svg'],
             ['Usuarios', 'usuarios', 'users-plus.svg'],
@@ -29,6 +30,7 @@
                 'dashboard' => 'dashboard.home',
                 'clientes' => 'dashboard.clientes',
                 'mascotas' => 'dashboard.mascotas',
+                'citas' => 'dashboard.citas',
                 'servicios' => 'dashboard.servicios',
                 'empleados' => 'dashboard.empleados',
                 'usuarios' => 'dashboard.users',

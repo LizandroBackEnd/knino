@@ -70,6 +70,7 @@ Route::controller(PetController::class)->group(function () {
 Route::controller(AppointmentController::class)->group(function () {
     Route::post('/appointments', 'scheduleAppointment');
     Route::get('/appointments/veterinarians/available', 'availableVeterinarians');
+    Route::get('/appointments/{id}', 'getAppointment');
     Route::post('/appointments/{id}/complete', 'completeAppointment');
     Route::put('/appointments/{id}/reschedule', 'rescheduleAppointment');
     Route::post('/appointments/{id}/cancel', 'cancelAppointment');
