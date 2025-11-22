@@ -6,6 +6,24 @@
   $apiAppointments = url('/api/appointments');
   $sizes = SizeEnum::values();
   $redirectUrl = url('/dashboard/citas');
+
+  // compute a safe string for the size display (avoid passing enum objects to ucfirst())
+  $rawSize = data_get($appointment, 'size') ?? data_get($appointment, 'pet.size') ?? '';
+  if (is_object($rawSize)) {
+    // If enum/backed-enum, try ->value, otherwise cast to string
+    if (property_exists($rawSize, 'value')) {
+      $appt_size = $rawSize->value;
+    } elseif (method_exists($rawSize, 'value')) {
+      $appt_size = $rawSize->value();
+    } else {
+      $appt_size = (string) $rawSize;
+    }
+  } else {
+    $appt_size = $rawSize;
+  }
+
+  // determine server-side reschedule mode: if an appointment was passed or reschedule query param exists
+  $isReschedule = isset($appointment) || (request()->query('reschedule') !== null);
 @endphp
 
 <main class="p-6" style="font-family: var(--font-secondary);">
@@ -40,20 +58,20 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Mascota <span class="text-red-500">*</span></label>
-          <input id="pet-search" type="search" placeholder="Buscar mascota por nombre" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'pet.name') ?? data_get($appointment, 'pet_name') }}">
+          <input id="pet-search" type="search" placeholder="Buscar mascota por nombre" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'pet.name') ?? data_get($appointment, 'pet_name') }}" @if($isReschedule) disabled @endif>
           <input id="pet-id" name="pet_id" type="hidden" value="{{ data_get($appointment, 'pet.id') ?? data_get($appointment, 'pet_id') }}">
           <div id="pet-results" class="mt-2 bg-white border rounded shadow" style="display:none; max-height:200px; overflow:auto;"></div>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Cliente</label>
-          <input id="client-display" name="client_display" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se completará al seleccionar mascota" value="{{ data_get($appointment, 'pet.client.name') ? (data_get($appointment, 'pet.client.name') . ' ' . data_get($appointment, 'pet.client.last_name_primary')) : (data_get($appointment, 'client.name') ? (data_get($appointment, 'client.name') . ' ' . data_get($appointment, 'client.last_name_primary')) : '') }}">
+          <input id="client-display" name="client_display" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se completará al seleccionar mascota" value="{{ data_get($appointment, 'pet.client.name') ? (data_get($appointment, 'pet.client.name') . ' ' . data_get($appointment, 'pet.client.last_name_primary')) : (data_get($appointment, 'client.name') ? (data_get($appointment, 'client.name') . ' ' . data_get($appointment, 'client.last_name_primary')) : '') }}" @if($isReschedule) disabled @endif>
           <input id="client-id" name="client_id" type="hidden" value="{{ data_get($appointment, 'pet.client.id') ?? data_get($appointment, 'client_id') }}">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Servicio <span class="text-red-500">*</span></label>
-          <input id="service-search" type="search" placeholder="Buscar servicio" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'service.name') ?? data_get($appointment, 'service_name') }}">
+          <input id="service-search" type="search" placeholder="Buscar servicio" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'service.name') ?? data_get($appointment, 'service_name') }}" @if($isReschedule) disabled @endif>
           <input id="service-id" name="service_id" type="hidden" value="{{ data_get($appointment, 'service.id') ?? data_get($appointment, 'service_id') }}">
           <div id="service-results" class="mt-2 bg-white border rounded shadow" style="display:none; max-height:200px; overflow:auto;"></div>
         </div>
@@ -61,18 +79,18 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Tamaño</label>
           {{-- Visible readonly display (auto-filled from mascota) and hidden input named `size` for form submit --}}
-          <input id="appt-size-display" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se completará al seleccionar mascota" value="{{ ucfirst(data_get($appointment,'size') ?? data_get($appointment,'pet.size') ?? '') }}">
+          <input id="appt-size-display" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se completará al seleccionar mascota" value="{{ $appt_size ? ucfirst($appt_size) : '' }}" @if($isReschedule) disabled @endif>
           <input id="appt-size" name="size" type="hidden" value="{{ data_get($appointment,'size') ?? data_get($appointment,'pet.size') ?? '' }}">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Precio</label>
-          <input id="appt-price" name="price" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se calculará según tamaño" value="@if(isset($appointment) && ($appointment->price !== null)) ${{ number_format($appointment->price,2) }} @endif">
+          <input id="appt-price" name="price" type="text" readonly class="form-control mt-1 block w-full bg-gray-50" placeholder="Se calculará según tamaño" value="@if(isset($appointment) && ($appointment->price !== null)) ${{ number_format($appointment->price,2) }} @endif" @if($isReschedule) disabled @endif>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Peso (kg)</label>
-          <input id="appt-weight" name="weight" type="number" step="0.01" min="0" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'pet.weight') ?? data_get($appointment, 'weight') }}">
+          <input id="appt-weight" name="weight" type="number" step="0.01" min="0" class="form-control mt-1 block w-full" value="{{ data_get($appointment, 'pet.weight') ?? data_get($appointment, 'weight') }}" @if($isReschedule) disabled @endif>
         </div>
 
         <div>
@@ -109,20 +127,16 @@
 
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Notas adicionales</label>
-          <textarea id="appt-notes" name="notes" rows="3" class="form-control mt-1 block w-full" placeholder="Opcional"></textarea>
+          <textarea id="appt-notes" name="notes" rows="3" class="form-control mt-1 block w-full" placeholder="Opcional" @if($isReschedule) disabled @endif></textarea>
         </div>
       </div>
 
       <div class="mt-6">
-        <div class="flex justify-center">
-          <button type="submit" id="appt-submit" class="px-8 py-3 rounded-md text-white btn-green text-lg w-full md:w-1/3">Programar cita</button>
+          <div class="flex justify-center">
+          <button type="submit" id="appt-submit" class="px-8 py-3 rounded-md text-white btn-green text-lg w-full md:w-1/3">@if($isReschedule) Reagendar cita @else Programar cita @endif</button>
         </div>
       </div>
     </form>
-      <div id="appt-debug-container" style="display:none; margin-top:12px;">
-        <label class="block text-sm font-medium text-gray-700">Debug respuesta</label>
-        <pre id="appt-debug" class="p-2 bg-gray-100 rounded text-xs overflow-auto" style="max-height:200px;"></pre>
-      </div>
   </div>
 </main>
 
@@ -404,15 +418,8 @@
           if (serverPrefill) {
             console.debug('Using serverPrefill for appointment', serverPrefill);
             const a = serverPrefill;
-            // show raw response as serverPrefill for debugging
-            try {
-              const dbgContainer = document.getElementById('appt-debug-container');
-              const dbgPre = document.getElementById('appt-debug');
-              if (dbgContainer && dbgPre) {
-                dbgContainer.style.display = 'block';
-                dbgPre.textContent = JSON.stringify(serverPrefill, null, 2);
-              }
-            } catch(e) { console.warn('Failed to write debug container', e); }
+            // serverPrefill available (no visible debug box) — log to console
+            console.debug('serverPrefill', serverPrefill);
             // proceed to prefill using 'a'
             const a_prefill = a;
             // prefill pet
@@ -487,15 +494,8 @@
           let resp;
           try { resp = JSON.parse(raw); } catch(e) { resp = raw; }
           console.debug('Raw appointment response:', resp);
-          // show raw response in debug container for easier inspection
-          try {
-            const dbgContainer = document.getElementById('appt-debug-container');
-            const dbgPre = document.getElementById('appt-debug');
-            if (dbgContainer && dbgPre) {
-              dbgContainer.style.display = 'block';
-              dbgPre.textContent = (typeof resp === 'string') ? resp : JSON.stringify(resp, null, 2);
-            }
-          } catch(e) { console.warn('Failed to write debug container', e); }
+          // log raw response to console (debug UI removed)
+          console.debug('appointment response', resp);
           // support debug wrapper (controller may return { debug, appointment }) during troubleshooting
           if (resp && resp.debug) console.debug('getAppointment debug:', resp.debug);
           const a = (resp && resp.appointment) ? resp.appointment : resp;
@@ -577,7 +577,6 @@
             const empId = a.employee_id ?? (empObj ? (empObj.id ?? '') : '');
             const empName = empObj ? ((empObj.name ?? empObj.nombre ?? '') + (empObj.last_name_primary ? ' ' + empObj.last_name_primary : '')) : (a.employee_name ?? 'Sin asignar');
             employeeSelect.innerHTML = '<option value="' + (empId ?? '') + '">' + empName + '</option>';
-            employeeSelect.disabled = true; employeeSelect.classList.add('bg-gray-50','text-gray-600');
           } catch(e) { console.warn('Failed to set employee select', e); }
 
         } catch (err) { console.error('Error pre-filling appointment', err); }
@@ -590,10 +589,10 @@
       submitBtn.disabled = true; submitBtn.classList.add('opacity-70');
       // basic validation (in reschedule mode we only require date/time)
       if (!isReschedule) {
-        if (!petId.value) { alert('Selecciona una mascota'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
-        if (!svcId.value) { alert('Selecciona un servicio'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
+        if (!petId.value) { if (window.showToast) window.showToast('Selecciona una mascota', { type: 'error' }); else alert('Selecciona una mascota'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
+        if (!svcId.value) { if (window.showToast) window.showToast('Selecciona un servicio', { type: 'error' }); else alert('Selecciona un servicio'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
       }
-      if (!scheduledDate.value || !scheduledTime.value) { alert('Selecciona fecha y hora'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
+      if (!scheduledDate.value || !scheduledTime.value) { if (window.showToast) window.showToast('Selecciona fecha y hora', { type: 'error' }); else alert('Selecciona fecha y hora'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); return; }
 
       const payload = new FormData();
       payload.append('pet_id', petId.value);
@@ -616,14 +615,16 @@
   if (token) headers['X-CSRF-TOKEN'] = token;
         let res;
         if (isReschedule) {
-          // send only scheduled_at and employee_id to reschedule endpoint
+          // Some PHP runtimes do not populate PUT form-data reliably. Use POST with _method=PUT override so Laravel receives form fields.
           const fd = new FormData();
           const d = scheduledDate.value;
           const t = scheduledTime.value;
           const scheduledLocal = d + ' ' + (t.length === 5 ? t : (t + ':00')) + ':00';
           fd.append('scheduled_at', scheduledLocal);
           const emp = employeeSelect.value; if (emp) fd.append('employee_id', emp);
-          res = await fetch(apptApi + '/' + encodeURIComponent(rescheduleId) + '/reschedule', { method: 'PUT', headers, body: fd, credentials: 'same-origin' });
+          // method override
+          fd.append('_method', 'PUT');
+          res = await fetch(apptApi + '/' + encodeURIComponent(rescheduleId) + '/reschedule', { method: 'POST', headers, body: fd, credentials: 'same-origin' });
           if (res.status === 200) {
             if (window.showToast) window.showToast('Cita reagendada', { type: 'success' });
             window.location.href = '{{ url("/dashboard/citas") }}';
@@ -640,18 +641,19 @@
         if (res.status === 422) {
           const payload = await res.json();
           if (payload && payload.errors) {
-            // show first error
+            // show first error via toast
             const first = Object.values(payload.errors)[0];
-            alert(Array.isArray(first) ? first.join('\n') : first);
+            const msg = Array.isArray(first) ? first.join('\n') : first;
+            if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
           } else if (payload && payload.error) {
-            alert(payload.error);
+            if (window.showToast) window.showToast(payload.error, { type: 'error' }); else alert(payload.error);
           }
           submitBtn.disabled = false; submitBtn.classList.remove('opacity-70');
           return;
         }
         const txt = await res.text().catch(()=>null);
-        alert('Error: ' + (txt || res.status));
-      } catch (err) { console.error(err); alert('Error de red'); }
+        if (window.showToast) window.showToast('Error: ' + (txt || res.status), { type: 'error' }); else alert('Error: ' + (txt || res.status));
+  } catch (err) { console.error(err); if (window.showToast) window.showToast('Error de red', { type: 'error' }); else alert('Error de red'); }
       finally { submitBtn.disabled = false; submitBtn.classList.remove('opacity-70'); }
     });
 

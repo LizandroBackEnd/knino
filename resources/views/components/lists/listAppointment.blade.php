@@ -102,10 +102,12 @@
 								Reagendar cita
 							</a>
 
+											@if(($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value)
 											<button type="button" class="btn-cancel flex items-center justify-center px-3 py-2 bg-white border border-red-100 rounded-md text-sm hover:bg-red-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
 												<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-red-100 rounded-full"><img src="/icons/trash.svg" alt="Cancelar" class="w-3 h-3" /></span>
 												<span class="text-red-700 font-medium">Cancelar cita</span>
 											</button>
+											@endif
 						</div>
 					</div>
 				</div>
