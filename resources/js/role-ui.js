@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  // hide admin-only items by default
-  document.querySelectorAll('[data-role="admin"]').forEach(el => el.classList.add('hidden'));
+  // hide role-restricted items by default (any element that has a data-role attribute)
+  document.querySelectorAll('[data-role]').forEach(el => el.classList.add('hidden'));
 
   const token = localStorage.getItem('token');
   if (!token) return;
@@ -17,12 +17,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!res.ok) return;
     const user = await res.json();
     const role = user && user.role ? String(user.role).toLowerCase() : '';
-
-    if (role === 'admin') {
-      document.querySelectorAll('[data-role="admin"]').forEach(el => el.classList.remove('hidden'));
-    } else {
-      document.querySelectorAll('[data-role="admin"]').forEach(el => el.classList.add('hidden'));
-    }
+    // reveal elements whose data-role list includes the current role
+    document.querySelectorAll('[data-role]').forEach(el => {
+      try {
+        const attr = (el.getAttribute('data-role') || '').toLowerCase();
+        const allowed = attr.split(',').map(s => s.trim()).filter(Boolean);
+        if (allowed.length === 0) return;
+        if (allowed.includes(role)) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      } catch(e) { console.warn('role-ui: error processing data-role', e); }
+    });
   } catch (err) {
     console.error('role-ui: could not fetch user', err);
   }

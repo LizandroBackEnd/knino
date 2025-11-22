@@ -12,20 +12,27 @@
 
       <nav class="mt-4">
           @php
+          // item structure: [label, routeKey, icon, allowedRoles]
+          // allowedRoles is optional (comma-separated) — if present it'll become data-role attribute
           $items = [
-            ['Dashboard', 'dashboard', 'dashboard.svg'],
-            ['Clientes', 'clientes', 'clients.svg'],
-            ['Mascotas', 'mascotas', 'pets.svg'],
-            ['Programar cita', 'citas', 'week.svg'],
-            ['Servicios', 'servicios', 'services.svg'],
-            ['Empleados', 'empleados', 'employees.svg'],
-            ['Usuarios', 'usuarios', 'users-plus.svg'],
+            // Dashboard only for admins per requested restrictions
+            ['Dashboard', 'dashboard', 'dashboard.svg', 'admin'],
+            // Clients and Pets visible to receptionist and admin
+            ['Clientes', 'clientes', 'clients.svg', 'receptionist,admin'],
+            ['Mascotas', 'mascotas', 'pets.svg', 'receptionist,admin'],
+            // Programar cita visible to receptionist, veterinarian and admin
+            ['Programar cita', 'citas', 'week.svg', 'receptionist,veterinarian,admin'],
+            // Management items only for admin
+            ['Servicios', 'servicios', 'services.svg', 'admin'],
+            ['Empleados', 'empleados', 'employees.svg', 'admin'],
+            ['Usuarios', 'usuarios', 'users-plus.svg', 'admin'],
           ];
         @endphp
 
         <div class="mt-2">
-            @foreach($items as [$label, $route, $icon])
+            @foreach($items as $item)
             @php
+              [$label, $route, $icon] = $item;
               $map = [
                 'dashboard' => 'dashboard.home',
                 'clientes' => 'dashboard.clientes',
@@ -42,9 +49,11 @@
 
             @php
               $extraAttr = '';
-              // mark certain routes as admin-only in the UI
-              if (in_array($route, ['empleados','servicios','usuarios'])) {
-                $extraAttr = ' data-role="admin"';
+              // if the item defines allowed roles (fourth element), render it as data-role attr
+              $allowed = isset($item[3]) ? $item[3] : null;
+              // note: $item is the current array from foreach below; we will build the attribute from $allowed
+              if (!empty($allowed)) {
+                $extraAttr = ' data-role="' . e($allowed) . '"';
               }
             @endphp
             <a href="{{ $url }}" {!! $extraAttr !!} class="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors w-full {{ $isActive ? 'bg-[var(--color-primary)] text-white' : 'text-gray-700 hover:bg-gray-50' }}" style="font-family: var(--font-subtitle);">
