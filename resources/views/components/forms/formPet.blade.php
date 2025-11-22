@@ -73,6 +73,21 @@
         </div>
 
         <div>
+          <label class="block text-sm font-medium text-gray-700">Tamaño <span class="text-red-500">*</span></label>
+          <select name="size" id="pet-size" class="form-control mt-1 block w-full" required>
+            <option value="">Selecciona un tamaño</option>
+            @foreach(App\Models\enums\SizeEnum::values() as $sz)
+              <option value="{{ $sz }}">{{ ucfirst($sz) }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Peso (kg) <span class="text-red-500">*</span></label>
+          <input name="weight" id="pet-weight" type="number" step="0.01" min="0" placeholder="Ej: 4.50" class="form-control mt-1 block w-full" required>
+        </div>
+
+        <div>
           <label class="block text-sm font-medium text-gray-700">Raza <span class="text-red-500">*</span></label>
           <div class="flex items-center space-x-2">
             <select name="breed_id" id="pet-breed" class="form-control mt-1 block w-full" required>
@@ -344,6 +359,11 @@
           form.querySelector('[name="color"]').value = pet.color || '';
           form.querySelector('[name="species"]').value = pet.species || '';
           form.querySelector('[name="sex"]').value = pet.sex || '';
+          // prefill size and weight when editing
+          try {
+            if (pet.size) form.querySelector('[name="size"]').value = pet.size;
+            if (pet.weight !== undefined && pet.weight !== null) form.querySelector('[name="weight"]').value = pet.weight;
+          } catch(e) { console.warn('Could not prefill size/weight', e); }
           setTimeout(() => {
             if (pet.breed_id) {
               const opt = document.createElement('option');
@@ -403,20 +423,24 @@
         field.parentNode.appendChild(p);
       }
 
-      const nameVal = (form.querySelector('[name="name"]').value || '').trim();
-      const birthVal = (form.querySelector('[name="birth_date"]').value || '').trim();
-      const colorVal = (form.querySelector('[name="color"]').value || '').trim();
-      const speciesVal = (form.querySelector('[name="species"]').value || '').trim();
-      const sexVal = (form.querySelector('[name="sex"]').value || '').trim();
-      const breedVal = (form.querySelector('[name="breed_id"]').value || '').trim();
-      const clientIdVal = (form.querySelector('[name="client_id"]').value || '').trim();
+  const nameVal = (form.querySelector('[name="name"]').value || '').trim();
+  const birthVal = (form.querySelector('[name="birth_date"]').value || '').trim();
+  const colorVal = (form.querySelector('[name="color"]').value || '').trim();
+  const speciesVal = (form.querySelector('[name="species"]').value || '').trim();
+  const sexVal = (form.querySelector('[name="sex"]').value || '').trim();
+  const sizeVal = (form.querySelector('[name="size"]').value || '').trim();
+  const weightVal = (form.querySelector('[name="weight"]').value || '').trim();
+  const breedVal = (form.querySelector('[name="breed_id"]').value || '').trim();
+  const clientIdVal = (form.querySelector('[name="client_id"]').value || '').trim();
 
       if (!nameVal) { addFieldError('name', 'Debes ingresar el nombre de la mascota.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
       if (!birthVal) { addFieldError('birth_date', 'Debes ingresar la fecha de nacimiento.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
       if (!colorVal) { addFieldError('color', 'Debes ingresar el color.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
       if (!speciesVal) { addFieldError('species', 'Debes seleccionar una especie.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
-      if (!sexVal) { addFieldError('sex', 'Debes seleccionar el sexo.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
-      if (!breedVal) { addFieldError('breed_id', 'Debes seleccionar una raza.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  if (!sexVal) { addFieldError('sex', 'Debes seleccionar el sexo.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  if (!sizeVal) { addFieldError('size', 'Debes seleccionar el tamaño.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  if (!weightVal || isNaN(Number(weightVal))) { addFieldError('weight', 'Debes ingresar un peso válido.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  if (!breedVal) { addFieldError('breed_id', 'Debes seleccionar una raza.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
       if (!clientIdVal) { addFieldError('client_search', 'Debes seleccionar un cliente.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
 
       const formData = new FormData(form);

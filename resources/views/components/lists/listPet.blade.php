@@ -88,6 +88,14 @@
                       <img src="/icons/breed.svg" alt="Raza" class="w-4 h-4 mr-2" onerror="this.src='/icons/specie.svg'" />
                       <span>${escapeHtml(breed)}</span>
                     </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <img src="/icons/size.svg" alt="Tamaño" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
+                      <span>${escapeHtml(pet.size || '')}</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <img src="/icons/weight.svg" alt="Peso" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
+                      <span>${pet.weight !== null && pet.weight !== undefined && pet.weight !== '' ? escapeHtml(Number(pet.weight).toFixed(2) + ' kg') : ''}</span>
+                    </div>
                     <div class="flex items-center text-sm text-gray-600 ml-auto">
                       <img src="/icons/clients.svg" alt="Cliente" class="w-4 h-4 mr-2" onerror="this.style.display='none'" />
                       <span>${escapeHtml(client)}</span>
