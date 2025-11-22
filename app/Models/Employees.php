@@ -54,7 +54,7 @@ class Employees extends Model
      */
     public function isVeterinarian(): bool
     {
-        return strtolower($this->role ?? '') === 'veterinario';
+        return strtolower($this->role ?? '') === 'veterinarian';
     }
 
     public function appointments()

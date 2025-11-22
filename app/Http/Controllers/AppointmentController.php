@@ -18,23 +18,48 @@ class AppointmentController extends Controller
 
     public function availableVeterinarians(Request $request)
     {
+        // Accept either scheduled_at (datetime) or scheduled_date + scheduled_time
         $validator = Validator::make($request->all(), [
-            'scheduled_at' => 'required|date',
+            'scheduled_at' => 'sometimes|date',
+            'scheduled_date' => 'sometimes|date',
+            'scheduled_time' => 'sometimes',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $scheduledAt = Carbon::parse($request->input('scheduled_at'));
+        if ($request->filled('scheduled_at')) {
+            $scheduledAt = Carbon::parse($request->input('scheduled_at'));
+        } elseif ($request->filled('scheduled_date') && $request->filled('scheduled_time')) {
+            $scheduledAt = Carbon::parse($request->input('scheduled_date') . ' ' . $request->input('scheduled_time'));
+        } else {
+            return response()->json(['error' => 'scheduled_at or scheduled_date+scheduled_time is required'], 422);
+        }
         $day = $scheduledAt->dayOfWeek;
         $time = $scheduledAt->format('H:i:s');
 
         $vetsQuery = Employees::query()
-            ->whereRaw('LOWER(role) = ?', ['veterinario'])
+            ->whereRaw('LOWER(role) = ?', ['veterinarian'])
             ->whereHas('schedules', function ($q) use ($day, $time) {
+                // schedules now use day_of_week_start and day_of_week_end (inclusive range)
                 $q->where('active', true)
-                    ->where('day_of_week', $day)
+                    ->where(function($sq) use ($day) {
+                        // non-wrapping ranges: start <= end
+                        $sq->where(function($r) use ($day) {
+                            $r->whereColumn('day_of_week_start', '<=', 'day_of_week_end')
+                              ->where('day_of_week_start', '<=', $day)
+                              ->where('day_of_week_end', '>=', $day);
+                        })
+                        // wrapping ranges: start > end (e.g., Thu -> Mon)
+                        ->orWhere(function($r2) use ($day) {
+                            $r2->whereColumn('day_of_week_start', '>', 'day_of_week_end')
+                               ->where(function($a) use ($day) {
+                                   $a->where('day_of_week_start', '<=', $day)
+                                     ->orWhere('day_of_week_end', '>=', $day);
+                               });
+                        });
+                    })
                     ->where('start_time', '<=', $time)
                     ->where('end_time', '>', $time);
             })
@@ -48,11 +73,14 @@ class AppointmentController extends Controller
 
     public function scheduleAppointment(Request $request)
     {
+        // Accept scheduled_at or scheduled_date + scheduled_time from the client (form sends local datetime string)
         $validator = Validator::make($request->all(), [
             'pet_id' => 'required|exists:pets,id',
             'service_id' => 'required|exists:services,id',
             'employee_id' => 'nullable|exists:users,id',
-            'scheduled_at' => 'required|date|after:now',
+            'scheduled_at' => 'sometimes|date',
+            'scheduled_date' => 'sometimes|date',
+            'scheduled_time' => 'sometimes',
             'notes' => 'nullable|string',
             'size' => 'nullable|string',
         ]);
@@ -63,12 +91,26 @@ class AppointmentController extends Controller
 
         $data = $validator->validated();
 
+        // determine scheduled_at from either scheduled_at or scheduled_date + scheduled_time
+        if (! empty($data['scheduled_at'])) {
+            $scheduledAt = Carbon::parse($data['scheduled_at']);
+        } elseif (! empty($request->input('scheduled_date')) && ! empty($request->input('scheduled_time'))) {
+            $scheduledAt = Carbon::parse($request->input('scheduled_date') . ' ' . $request->input('scheduled_time'));
+        } else {
+            return response()->json(['error' => 'scheduled_at o scheduled_date+scheduled_time son requeridos'], 422);
+        }
+
+        // ensure scheduled_at is in the future
+        if (! $scheduledAt->isFuture()) {
+            return response()->json(['error' => 'scheduled_at must be a future date'], 422);
+        }
+
         $pet = Pet::findOrFail($data['pet_id']);
         $service = Service::findOrFail($data['service_id']);
 
         $size = $data['size'] ?? $pet->size ?? null;
         if ($size === null) {
-            return response()->json(['error' => 'El tamaño de la mascota no está definido.'], 422);
+            return response()->json(['error' => 'Pet size is not defined.'], 422);
         }
 
         try {
@@ -77,12 +119,12 @@ class AppointmentController extends Controller
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        $scheduledAt = Carbon::parse($data['scheduled_at']);
+    // $scheduledAt already parsed above
 
         if (! empty($data['employee_id'])) {
             $emp = Employees::findOrFail($data['employee_id']);
             if (! $emp->isVeterinarian()) {
-                return response()->json(['error' => 'Empleado no es veterinario'], 422);
+                return response()->json(['error' => 'Employee is not a veterinarian'], 422);
             }
 
             $day = $scheduledAt->dayOfWeek;
@@ -90,13 +132,26 @@ class AppointmentController extends Controller
 
             $hasSchedule = $emp->schedules()
                 ->where('active', true)
-                ->where('day_of_week', $day)
+                ->where(function($sq) use ($day) {
+                    $sq->where(function($r) use ($day) {
+                        $r->whereColumn('day_of_week_start', '<=', 'day_of_week_end')
+                          ->where('day_of_week_start', '<=', $day)
+                          ->where('day_of_week_end', '>=', $day);
+                    })
+                    ->orWhere(function($r2) use ($day) {
+                        $r2->whereColumn('day_of_week_start', '>', 'day_of_week_end')
+                           ->where(function($a) use ($day) {
+                               $a->where('day_of_week_start', '<=', $day)
+                                 ->orWhere('day_of_week_end', '>=', $day);
+                           });
+                    });
+                })
                 ->where('start_time', '<=', $time)
                 ->where('end_time', '>', $time)
                 ->exists();
 
             if (! $hasSchedule) {
-                return response()->json(['error' => 'Veterinario no trabaja en esa fecha/hora'], 422);
+                return response()->json(['error' => 'Veterinarian does not work at that date/time'], 422);
             }
 
             $conflict = Appointment::where('employee_id', $emp->id)
@@ -104,7 +159,7 @@ class AppointmentController extends Controller
                 ->exists();
 
             if ($conflict) {
-                return response()->json(['error' => 'Veterinario no disponible en esa hora'], 422);
+                return response()->json(['error' => 'Veterinarian not available at that time'], 422);
             }
         }
 
@@ -173,25 +228,38 @@ class AppointmentController extends Controller
         if (! empty($data['employee_id'])) {
             $emp = Employees::findOrFail($data['employee_id']);
             if (! $emp->isVeterinarian()) {
-                return response()->json(['error' => 'Empleado no es veterinario'], 422);
+                return response()->json(['error' => 'Employee is not a veterinarian'], 422);
             }
             $day = $scheduledAt->dayOfWeek;
             $time = $scheduledAt->format('H:i:s');
             $hasSchedule = $emp->schedules()
                 ->where('active', true)
-                ->where('day_of_week', $day)
+                ->where(function($sq) use ($day) {
+                    $sq->where(function($r) use ($day) {
+                        $r->whereColumn('day_of_week_start', '<=', 'day_of_week_end')
+                          ->where('day_of_week_start', '<=', $day)
+                          ->where('day_of_week_end', '>=', $day);
+                    })
+                    ->orWhere(function($r2) use ($day) {
+                        $r2->whereColumn('day_of_week_start', '>', 'day_of_week_end')
+                           ->where(function($a) use ($day) {
+                               $a->where('day_of_week_start', '<=', $day)
+                                 ->orWhere('day_of_week_end', '>=', $day);
+                           });
+                    });
+                })
                 ->where('start_time', '<=', $time)
                 ->where('end_time', '>', $time)
                 ->exists();
             if (! $hasSchedule) {
-                return response()->json(['error' => 'Veterinario no trabaja en esa fecha/hora'], 422);
+                return response()->json(['error' => 'Veterinarian does not work at that date/time'], 422);
             }
             $conflict = Appointment::where('employee_id', $emp->id)
                 ->where('scheduled_at', $scheduledAt)
                 ->where('id', '!=', $appointment->id)
                 ->exists();
             if ($conflict) {
-                return response()->json(['error' => 'Veterinario no disponible en esa hora'], 422);
+                return response()->json(['error' => 'Veterinarian not available at that time'], 422);
             }
             $appointment->employee_id = $emp->id;
         }

@@ -62,7 +62,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function isVeterinarian(): bool
     {
-        return strtolower($this->role ?? '') === 'veterinario';
+        return strtolower($this->role ?? '') === 'veterinarian';
     }
 
 
