@@ -85,7 +85,8 @@
 
       items.forEach(u => {
         const roleText = roleLabel(u.role || '');
-        const roleBlock = roleText ? (`<div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${roleIcon}</span><span>${escapeHtml(roleText)}</span></div>`) : '';
+        // always show the role icon; if roleText is empty, show icon with empty label
+        const roleBlock = (`<div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${roleIcon}</span><span>${escapeHtml(roleText)}</span></div>`);
 
         const card = el(`
           <div class="bg-white rounded shadow p-4">
