@@ -42,9 +42,21 @@
           <textarea name="description" rows="4" class="form-control mt-1 block w-full" placeholder="Descripción del servicio" required></textarea>
         </div>
 
+        <!-- Precio individual removed: now using price_by_size per talla -->
+
         <div>
-          <label class="block text-sm font-medium text-gray-700">Precio <span class="text-red-500">*</span></label>
-          <input name="price" type="number" step="0.01" placeholder="0.00" class="form-control mt-1 block w-full" required>
+          <label class="block text-sm font-medium text-gray-700">Precio por talla <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2" id="price-by-size-group">
+            @php
+              $sizes = \App\Models\enums\SizeEnum::values();
+            @endphp
+            @foreach($sizes as $size)
+              <div>
+                <label class="block text-sm text-gray-700">{{ ucfirst($size) }} <span class="text-gray-500 text-xs">({{ $size }})</span></label>
+                <input name="price_by_size[{{ $size }}]" type="number" step="0.01" min="0" placeholder="0.00" class="form-control mt-1 block w-full price-by-size-input">
+              </div>
+            @endforeach
+          </div>
         </div>
 
         <div>
@@ -91,7 +103,15 @@
           if (!svc) return;
           form.querySelector('[name="name"]').value = svc.name || '';
           form.querySelector('[name="description"]').value = svc.description || '';
-          form.querySelector('[name="price"]').value = svc.price || '';
+          // populate price_by_size inputs if present
+          try {
+            if (svc.price_by_size && typeof svc.price_by_size === 'object') {
+              Object.keys(svc.price_by_size).forEach(k => {
+                const el = form.querySelector('[name="price_by_size[' + k + ']"]');
+                if (el) el.value = svc.price_by_size[k];
+              });
+            }
+          } catch (e) { console.warn('Could not prefill price_by_size', e); }
           if (svc.photo_url) {
             const img = document.createElement('img');
             img.src = svc.photo_url;
@@ -158,11 +178,20 @@
 
       const nameVal = (form.querySelector('[name="name"]').value || '').trim();
       const descVal = (form.querySelector('[name="description"]').value || '').trim();
-      const priceVal = (form.querySelector('[name="price"]').value || '').trim();
-      if (!nameVal) { addFieldError('name', 'Debes ingresar el nombre del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
-      if (!descVal) { addFieldError('description', 'Debes ingresar la descripción del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
-      if (!priceVal) { addFieldError('price', 'Debes ingresar el precio del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
-      if (isNaN(Number(priceVal)) || Number(priceVal) < 0) { addFieldError('price', 'El precio debe ser un número válido mayor o igual a 0.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  // price field removed: pricing is handled by price_by_size inputs
+      // validate price_by_size inputs
+      const priceBySizeInputs = Array.from(form.querySelectorAll('.price-by-size-input'));
+      for (const input of priceBySizeInputs) {
+        const v = (input.value || '').trim();
+        if (v === '' || isNaN(Number(v)) || Number(v) < 0) {
+          const name = input.getAttribute('name') || 'price_by_size';
+          addFieldError(name, 'Debes ingresar un precio válido mayor o igual a 0 para cada talla.');
+          if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
+          return;
+        }
+      }
+  if (!nameVal) { addFieldError('name', 'Debes ingresar el nombre del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
+  if (!descVal) { addFieldError('description', 'Debes ingresar la descripción del servicio.'); submit.disabled = false; submit.classList.remove('opacity-70'); return; }
 
       const formData = new FormData(form);
           try {

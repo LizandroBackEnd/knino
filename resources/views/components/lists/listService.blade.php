@@ -62,7 +62,30 @@
       const body = el('div', 'flex-1');
       const title = el('div', 'font-semibold text-lg mb-1', s.name || '—');
       const desc = el('div', 'text-sm text-gray-600 mb-2', s.description || '');
-      const price = el('div', 'text-sm text-gray-700 font-medium mb-2', s.price ? ('$' + Number(s.price).toFixed(2)) : '');
+      // price_by_size: render per-size prices with a price icon and size label (e.g. "Chico $12.00").
+      const price = el('div', 'text-sm text-gray-700 font-medium mb-2');
+      try {
+        if (s.price_by_size && typeof s.price_by_size === 'object') {
+          Object.keys(s.price_by_size).forEach(sz => {
+            const val = s.price_by_size[sz];
+            const pWrap = el('div', 'inline-flex items-center mr-3');
+            const icon = document.createElement('img');
+            icon.src = '/icons/price.svg';
+            icon.alt = 'Precio';
+            icon.className = 'w-4 h-4 mr-1';
+            const label = (typeof sz === 'string' && sz.length) ? (sz.charAt(0).toUpperCase() + sz.slice(1)) : sz;
+            const txt = el('span', 'text-sm text-gray-700', label + ' ' + (val !== undefined && val !== null && !isNaN(Number(val)) ? ('$' + Number(val).toFixed(2)) : '-'));
+            pWrap.appendChild(icon);
+            pWrap.appendChild(txt);
+            price.appendChild(pWrap);
+          });
+        } else if (s.price) {
+          price.textContent = '$' + Number(s.price).toFixed(2);
+        }
+      } catch (e) {
+        console.warn('Could not render price_by_size', e);
+        if (s.price) price.textContent = '$' + Number(s.price).toFixed(2);
+      }
 
       const actions = el('div', 'mt-4 grid grid-cols-2 gap-3');
 
