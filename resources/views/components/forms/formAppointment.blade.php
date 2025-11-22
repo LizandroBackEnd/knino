@@ -113,9 +113,17 @@
           <select id="scheduled-time" name="scheduled_time" class="form-control mt-1 block w-full">
             <option value="">Selecciona hora</option>
             @foreach($timeSlots as $ts)
-              <option value="{{ $ts }}" @if(isset($appointment) && $appointment->scheduled_at && (strpos($appointment->scheduled_at, 'T') !== false ? (new \Carbon\Carbon($appointment->scheduled_at))->format('H:i') : (explode(' ', $appointment->scheduled_at)[1] ?? '') ) == $ts) selected @endif>{{ $ts }}</option>
+              @php
+                // display in 12-hour like '1:00' instead of '13:00' but keep value as server expects (24h)
+                $hour = (int) substr($ts,0,2);
+                $minute = substr($ts,3,2);
+                $displayHour = $hour % 12 === 0 ? 12 : $hour % 12;
+                $display = $displayHour . ':' . $minute;
+              @endphp
+              <option value="{{ $ts }}" @if(isset($appointment) && $appointment->scheduled_at && (strpos($appointment->scheduled_at, 'T') !== false ? (new \Carbon\Carbon($appointment->scheduled_at))->format('H:i') : (explode(' ', $appointment->scheduled_at)[1] ?? '') ) == $ts) selected @endif>{{ $display }}</option>
             @endforeach
           </select>
+          <div id="scheduled-preview" class="text-sm text-gray-500 mt-1">&nbsp;</div>
         </div>
 
         <div>
@@ -341,8 +349,9 @@
     function renderServiceResults(list){
       svcResults.innerHTML = '';
       list.forEach(s => {
-        const wrapper = el('div','p-2 hover:bg-gray-50 cursor-pointer');
-        wrapper.textContent = (s.name || '-') + (s.description ? ' — ' + s.description : '');
+  const wrapper = el('div','p-2 hover:bg-gray-50 cursor-pointer');
+  // Show only the service title (name) — do not display the description here
+  wrapper.textContent = (s.name || '-');
         wrapper.addEventListener('click', ()=>{
           svcId.value = s.id;
           svcSearch.value = s.name || '';
@@ -405,10 +414,47 @@
         }
       } catch(e) { console.warn('handleDateTimeChange enable error', e); }
       await fetchVetsForDateTime();
+      // update compact preview as well
+      try { updateScheduledPreview(); } catch(e){}
     }
 
     if (scheduledDate) scheduledDate.addEventListener('change', handleDateTimeChange);
     if (scheduledTime) scheduledTime.addEventListener('change', handleDateTimeChange);
+
+    // also update the compact preview when fields change
+    if (scheduledDate) scheduledDate.addEventListener('change', function(){ try{ updateScheduledPreview(); }catch(e){} });
+    if (scheduledTime) scheduledTime.addEventListener('change', function(){ try{ updateScheduledPreview(); }catch(e){} });
+
+    // compact human-friendly preview for selected date/time
+    function updateScheduledPreview(){
+      const preview = document.getElementById('scheduled-preview');
+      if (!preview) return;
+      const d = (scheduledDate && scheduledDate.value) ? scheduledDate.value : '';
+      const t = (scheduledTime && scheduledTime.value) ? scheduledTime.value : '';
+      if (!d && !t) { preview.innerHTML = '\u00A0'; return; }
+      try {
+        let parts = [];
+        if (d) {
+          const dateObj = new Date(d + 'T00:00:00');
+          const opts = { weekday: 'short', day: '2-digit', month: 'short' };
+          parts.push(dateObj.toLocaleDateString('es-ES', opts));
+        }
+        if (t) {
+          // show time as 12-hour without leading zero: '13:00' -> '1:00'
+          try {
+            const hh = parseInt(t.slice(0,2), 10);
+            const mm = t.slice(3,5);
+            const hh12 = (hh % 12 === 0) ? 12 : (hh % 12);
+            parts.push(hh12 + ':' + mm);
+          } catch(e) {
+            parts.push(t.length===5? t : t.slice(0,5));
+          }
+        }
+        preview.textContent = parts.join(' · ');
+      } catch (err) {
+        preview.textContent = (d || '') + (t ? (' · ' + t) : '');
+      }
+    }
 
     // If rescheduling, load appointment data and prefill form, then lock fields except date/time/employee
     if (isReschedule) {
@@ -474,10 +520,13 @@
               try { el.disabled = true; el.classList.add('bg-gray-50', 'text-gray-600'); } catch(e){}
             });
             petResults.style.display = 'none'; svcResults.style.display = 'none';
+            // update compact preview
+            try { updateScheduledPreview(); } catch(e){}
             // show assigned employee and disable selection (user requested only date/time editable)
             try {
               let empId = a_prefill.employee_id ?? (a_prefill.employee ? (a_prefill.employee.id ?? '') : '');
               let empName = '';
+          
               if (a_prefill.employee) empName = (a_prefill.employee.name ?? a_prefill.employee.nombre ?? '') + (a_prefill.employee.last_name_primary ? ' ' + a_prefill.employee.last_name_primary : '');
               empName = empName || (a_prefill.employee_name ?? 'Sin asignar');
               employeeSelect.innerHTML = '<option value="' + (empId ?? '') + '">' + empName + '</option>';
@@ -577,6 +626,7 @@
             const empId = a.employee_id ?? (empObj ? (empObj.id ?? '') : '');
             const empName = empObj ? ((empObj.name ?? empObj.nombre ?? '') + (empObj.last_name_primary ? ' ' + empObj.last_name_primary : '')) : (a.employee_name ?? 'Sin asignar');
             employeeSelect.innerHTML = '<option value="' + (empId ?? '') + '">' + empName + '</option>';
+            try { updateScheduledPreview(); } catch(e){}
           } catch(e) { console.warn('Failed to set employee select', e); }
 
         } catch (err) { console.error('Error pre-filling appointment', err); }
