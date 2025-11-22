@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Pet;
 use App\Models\enums\SexEnum;
+use App\Models\enums\SizeEnum;
+use App\Models\enums\SpeciesEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +20,12 @@ class PetController extends Controller
             'birth_date' => 'required|date',
             'color' => 'required|string',
             'photo' => 'required|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
-            'species' => 'required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
+            'species' => 'required|in:' . implode(',', SpeciesEnum::values()),
             'sex' => 'required|in:' . implode(',', SexEnum::values()),
             'breed_id' => 'required|exists:breeds,id',
-            'client_id' => 'required|exists:clients,id'
+            'client_id' => 'required|exists:clients,id',
+            'size' => 'required|in:' . implode(',', SizeEnum::values()),
+            'weight' => 'required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -44,7 +48,8 @@ class PetController extends Controller
             'sex' => $request->get('sex'),
             'breed_id' => $request->get('breed_id'),
             'client_id' => $request->get('client_id'),
-
+            'size' => $request->get('size'),
+            'weight' => $request->get('weight'),
         ]);
 
         return response()->json(['message' => 'Pet added successfully'], 201);
@@ -83,10 +88,12 @@ class PetController extends Controller
             'birth_date' => 'sometimes|required|date',
             'color' => 'sometimes|required|string',
             'photo' => 'sometimes|image|mimes:jpg,jpeg,png,gif,svg|max:5120',
-            'species' => 'sometimes|required|in:' . implode(',', \App\Models\enums\SpeciesEnum::values()),
+            'species' => 'sometimes|required|in:' . implode(',', SpeciesEnum::values()),
             'sex' => 'sometimes|required|in:' . implode(',', SexEnum::values()),
             'breed_id' => 'sometimes|required|exists:breeds,id',
-            'client_id' => 'sometimes|required|exists:clients,id'
+            'client_id' => 'sometimes|required|exists:clients,id',
+            'size' => 'sometimes|required|in:' . implode(',', SizeEnum::values()),
+            'weight' => 'sometimes|required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -130,9 +137,15 @@ class PetController extends Controller
         if ($request->has('client_id')) {
             $pets->client_id =  $request->get('client_id');
         }
+        if ($request->has('size')) {
+            $pets->size = $request->get('size');
+        }
+        if ($request->has('weight')) {
+            $pets->weight = $request->get('weight');
+        }
 
     // guardar cambios en el modelo
-    $pets->save();
+    $pets->update();
     return response()->json(['message' => 'Pet updated successfully'], 200);
 
     }

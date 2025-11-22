@@ -11,9 +11,9 @@ class ClientController extends Controller
     public function addClient(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:5|max:20',
-            'last_name_primary' => 'required|string|min:5|max:20',
-            'last_name_secondary' => 'required|string|min:5|max:20',
+            'name' => 'required|string|max:20',
+            'last_name_primary' => 'required|string|max:20',
+            'last_name_secondary' => 'required|string|max:20',
             'phone' => 'required|string|min:10|max:10',
             'email' => 'required|string|min:5|max:20',
             'address' => 'required|string|min:10|max:50',
@@ -79,9 +79,9 @@ class ClientController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|min:5|max:20',
-            'last_name_primary' => 'sometimes|required|string|min:5|max:20',
-            'last_name_secondary' => 'sometimes|required|string|min:5|max:20',
+            'name' => 'sometimes|required|string|max:20',
+            'last_name_primary' => 'sometimes|required|string|max:20',
+            'last_name_secondary' => 'sometimes|required|string|max:20',
             'phone' => 'sometimes|required|string|min:10|max:10',
             'email' => 'sometimes|required|string|min:5|max:20|unique:users,email,' . $id,
             'address' => 'sometimes|required|string|min:10|max:50',
