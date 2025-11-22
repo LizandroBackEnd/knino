@@ -7,6 +7,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsReceptionist;
 use App\Http\Middleware\IsVeterinarian;
@@ -18,7 +19,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class,  'register']);
 Route::post('/login', [AuthController::class,  'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
-// helper route: return current user (expects Bearer token)
 Route::get('/user', [AuthController::class, 'getUser']);
 
 
@@ -65,6 +65,21 @@ Route::controller(PetController::class)->group(function () {
     Route::post('/pets', 'addPet');
     Route::patch('/pets/{id}', 'updatePetById');
     Route::delete('/pets/{id}', 'deletePetById');
+});
+
+Route::controller(AppointmentController::class)->group(function () {
+    Route::post('/appointments', 'scheduleAppointment');
+    Route::get('/appointments/veterinarians/available', 'availableVeterinarians');
+    Route::post('/appointments/{id}/complete', 'completeAppointment');
+    Route::put('/appointments/{id}/reschedule', 'rescheduleAppointment');
+    Route::post('/appointments/{id}/cancel', 'cancelAppointment');
+});
+
+Route::controller(EmployeesController::class)->group(function () {
+    Route::get('/employees/{id}/schedules', 'getSchedules');
+    Route::post('/employees/{id}/schedules', 'addSchedule');
+    Route::put('/employees/schedules/{id}', 'updateSchedule');
+    Route::delete('/employees/schedules/{id}', 'deleteSchedule');
 });
 /*
 

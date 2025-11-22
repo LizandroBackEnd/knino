@@ -19,6 +19,8 @@
 
   $mailSvg = load_icon('mail.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m0 8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2z"/></svg>');
   $phoneSvg = load_icon('phone.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.6a1 1 0 01.95.68L11 7l-2 2a12 12 0 006 6l2-2 3.32 1.45a1 1 0 01.68.95V19a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/></svg>');
+  $weekSvg = load_icon('week.svg', '<svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>');
+  $clockSvg = load_icon('clock.svg', '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>');
 @endphp
 
 <div id="employees-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -36,6 +38,8 @@
 
   const mailIcon = @json($mailSvg);
   const phoneIcon = @json($phoneSvg);
+  const weekIcon = @json($weekSvg);
+  const clockIcon = @json($clockSvg);
 
     function el(html) {
       const template = document.createElement('template');
@@ -67,6 +71,8 @@
 
     function renderEmployees(items) {
       container.innerHTML = '';
+      // filter out admin roles from the list (case-insensitive)
+      items = (items || []).filter(emp => String(emp.role || '').toLowerCase() !== 'admin');
       if (!items.length) {
         container.innerHTML = '<div class="col-span-2 text-center text-gray-500">No hay empleados registrados.</div>';
         return;
@@ -80,6 +86,7 @@
               <!-- Rol oculto en la lista de empleados -->
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${mailIcon}</span><span>${escapeHtml(emp.email || '')}</span></div>
               <div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${phoneIcon}</span><span>${escapeHtml(emp.phone || '')}</span></div>
+              <div class="mt-2 schedule-placeholder text-sm text-gray-600"></div>
             </div>
             <div class="mt-4 grid grid-cols-2 gap-3">
               <a href="${editBase}?edit=${emp.id}" data-nav class="flex items-center justify-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-200">
@@ -95,6 +102,42 @@
         `);
 
         container.appendChild(card);
+        // fetch schedules for this employee and render day range + time
+        (async function renderScheduleForCard(cardEl, empId) {
+          try {
+            const res = await fetch(apiUrl + '/' + encodeURIComponent(empId) + '/schedules', { credentials: 'same-origin' });
+            if (!res.ok) return; // no schedules or error
+            const sdata = await res.json();
+            if (!Array.isArray(sdata) || sdata.length === 0) return;
+            const s = sdata[0];
+            const startDay = (typeof s.day_of_week_start !== 'undefined') ? s.day_of_week_start : (typeof s.day_start !== 'undefined' ? s.day_start : s.day_of_week);
+            const endDay = (typeof s.day_of_week_end !== 'undefined') ? s.day_of_week_end : (typeof s.day_end !== 'undefined' ? s.day_end : s.day_of_week);
+            const startTime = s.start_time || '';
+            const endTime = s.end_time || '';
+
+            const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const dayLabel = (startDay == endDay) ? dayNames[startDay] : `${dayNames[startDay]} - ${dayNames[endDay]}`;
+
+            function fmt(t) {
+              if (!t) return '';
+              // t expected as HH:MM (24h)
+              const [hh, mm] = String(t).split(':');
+              let h = parseInt(hh, 10);
+              const period = h >= 12 ? 'PM' : 'AM';
+              h = h % 12; if (h === 0) h = 12;
+              return `${h}:${mm} ${period}`;
+            }
+
+            const timeLabel = `${fmt(startTime)} - ${fmt(endTime)}`;
+            const placeholder = cardEl.querySelector('.schedule-placeholder');
+            if (placeholder) {
+              placeholder.innerHTML = `<div class="flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${weekIcon}</span><span>${escapeHtml(dayLabel)}</span></div><div class="mt-1 flex items-center text-sm text-gray-600"><span class="inline-flex w-4 h-4 mr-2" aria-hidden="true">${clockIcon}</span><span>${escapeHtml(timeLabel)}</span></div>`;
+            }
+          } catch (e) {
+            // ignore schedule render errors
+            console.warn('Could not load schedules for employee', empId, e);
+          }
+        })(card, emp.id);
       });
 
       container.querySelectorAll('.btn-delete').forEach(btn => {

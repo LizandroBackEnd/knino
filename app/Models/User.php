@@ -60,6 +60,12 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes['last_name_secondary'] = strtoupper($value);
     }
 
+    public function isVeterinarian(): bool
+    {
+        return strtolower($this->role ?? '') === 'veterinario';
+    }
+
+
 
     /**
      * The attributes that should be hidden for serialization.

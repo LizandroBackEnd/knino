@@ -63,6 +63,60 @@
 
       </div>
 
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700">Horarios de trabajo <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mt-2">
+            <div>
+              <label class="block text-sm text-gray-700">Día inicio <span class="text-red-500">*</span></label>
+              <select id="sched-day-start" class="form-control mt-1 block w-full">
+                <option value="0">Domingo</option>
+                <option value="1">Lunes</option>
+                <option value="2">Martes</option>
+                <option value="3">Miércoles</option>
+                <option value="4">Jueves</option>
+                <option value="5">Viernes</option>
+                <option value="6">Sábado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700">Día fin <span class="text-red-500">*</span></label>
+              <select id="sched-day-end" class="form-control mt-1 block w-full">
+                <option value="0">Domingo</option>
+                <option value="1">Lunes</option>
+                <option value="2">Martes</option>
+                <option value="3">Miércoles</option>
+                <option value="4">Jueves</option>
+                <option value="5">Viernes</option>
+                <option value="6">Sábado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700">Inicio <span class="text-red-500">*</span></label>
+              <select id="sched-start" name="start_time" aria-required="true" required class="form-control mt-1 block w-full">
+                <option value="08:00">08:00</option>
+                <option value="09:00">09:00</option>
+                <option value="10:00">10:00</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700">Fin <span class="text-red-500">*</span></label>
+              <select id="sched-end" name="end_time" aria-required="true" required class="form-control mt-1 block w-full">
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">1:00</option>
+                <option value="14:00">2:00</option>
+                <option value="15:00">3:00</option>
+                <option value="16:00">4:00</option>
+              </select>
+            </div>
+            
+          </div>
+
+          <div class="mt-3">
+            <ul id="schedule-list" class="space-y-2"></ul>
+          </div>
+        </div>
+
       <div class="mt-6">
         <div class="flex justify-center">
           <button type="submit" id="employee-create-submit" class="px-8 py-3 rounded-md text-white btn-green text-lg w-full md:w-1/3">Crear Empleado</button>
@@ -72,6 +126,7 @@
   </div>
 </main>
 
+
 <script>
   (function () {
     const form = document.getElementById('employee-create-form');
@@ -80,7 +135,6 @@
     const apiUrl = @json($apiUrl);
     const redirectUrl = @json($redirectUrl);
 
-  // detect edit mode
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
     let isEdit = !!editId;
@@ -88,9 +142,51 @@
     const titleEl = document.querySelector('h1');
     const submitBtn = document.getElementById('employee-create-submit');
 
+    // schedules local store
+    let schedules = [];
+  const schedDayStart = document.getElementById('sched-day-start');
+  const schedDayEnd = document.getElementById('sched-day-end');
+  const schedStart = document.getElementById('sched-start');
+  const schedEnd = document.getElementById('sched-end');
+  const scheduleList = document.getElementById('schedule-list');
+  // allowed ranges
+  const START_MIN = '08:00';
+  const START_MAX = '10:00';
+  const END_MIN = '11:00';
+  const END_MAX = '16:00';
+
+    function renderSchedules() {
+      scheduleList.innerHTML = '';
+      schedules.forEach((s, idx) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2 border rounded';
+        const label = document.createElement('div');
+        const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const startDay = (typeof s.day_start !== 'undefined') ? s.day_start : (typeof s.day_of_week_start !== 'undefined' ? s.day_of_week_start : s.day_of_week);
+        const endDay = (typeof s.day_end !== 'undefined') ? s.day_end : (typeof s.day_of_week_end !== 'undefined' ? s.day_of_week_end : s.day_of_week);
+        const dayLabel = startDay === endDay ? days[startDay] : `${days[startDay]} - ${days[endDay]}`;
+        label.innerHTML = `<strong>${dayLabel}</strong> ${s.start_time} - ${s.end_time} ${s.active ? '<span class="text-sm text-green-600 ml-2">(activo)</span>' : '<span class="text-sm text-gray-500 ml-2">(inactivo)</span>'}`;
+        const btns = document.createElement('div');
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'px-2 py-1 text-sm text-red-600';
+        removeBtn.textContent = 'Eliminar';
+        removeBtn.addEventListener('click', () => {
+          schedules.splice(idx, 1);
+          renderSchedules();
+        });
+        btns.appendChild(removeBtn);
+        li.appendChild(label);
+        li.appendChild(btns);
+        scheduleList.appendChild(li);
+      });
+    }
+
+    // (no preset buttons) 
+
     if (isEdit) {
-  if (titleEl) titleEl.textContent = 'Editar Empleado';
-  if (submitBtn) submitBtn.textContent = 'Guardar cambios';
+      if (titleEl) titleEl.textContent = 'Editar Empleado';
+      if (submitBtn) submitBtn.textContent = 'Guardar cambios';
       (async function prefill() {
         try {
           const res = await fetch(apiUrl, { credentials: 'same-origin' });
@@ -103,11 +199,80 @@
           form.querySelector('[name="last_name_secondary"]').value = emp.last_name_secondary || '';
           form.querySelector('[name="phone"]').value = emp.phone || '';
           form.querySelector('[name="email"]').value = emp.email || '';
+
+          // fetch schedules for this employee
+          try {
+            const sres = await fetch(`${apiUrl}/${encodeURIComponent(editId)}/schedules`, { credentials: 'same-origin' });
+              if (sres.ok) {
+              const sdata = await sres.json();
+              // normalize schedules: support legacy (day_of_week) and new (day_of_week_start/day_of_week_end)
+              schedules = (sdata || []).map(s => ({
+                day_start: (typeof s.day_of_week_start !== 'undefined') ? s.day_of_week_start : (typeof s.day_start !== 'undefined' ? s.day_start : s.day_of_week),
+                day_end: (typeof s.day_of_week_end !== 'undefined') ? s.day_of_week_end : (typeof s.day_end !== 'undefined' ? s.day_end : s.day_of_week),
+                start_time: s.start_time,
+                end_time: s.end_time,
+                active: !!s.active,
+                id: s.id
+              }));
+              // if schedules preloaded, set select values to first schedule for editing clarity
+              if (schedules.length > 0) {
+                const first = schedules[0];
+                if (schedDayStart) schedDayStart.value = String(first.day_start);
+                if (schedDayEnd) schedDayEnd.value = String(first.day_end);
+                if (schedStart) schedStart.value = first.start_time;
+                if (schedEnd) schedEnd.value = first.end_time;
+              }
+              renderSchedules();
+            }
+          } catch (serr) {
+            console.warn('Could not fetch schedules', serr);
+          }
+
         } catch (err) {
           console.error('Prefill failed', err);
           if (window.showToast) window.showToast('No se pudo obtener datos del empleado para editar.', { type: 'error' });
         }
       })();
+    }
+
+    // If user didn't press an "Agregar" button (we removed it), allow submitting the current inputs as a single schedule
+    function pushInlineScheduleIfPresent() {
+      // if there are already schedules (e.g. in edit mode) do nothing
+      if (schedules.length > 0) return;
+      const dayStart = parseInt(schedDayStart.value, 10);
+      const dayEnd = parseInt(schedDayEnd.value, 10);
+      const start = schedStart.value;
+      const end = schedEnd.value;
+      const active = true; // schedules are active by default (checkbox removed)
+      if (!start || !end) {
+        const msg = 'Debes ingresar la hora de inicio y la hora de fin para el horario.';
+        if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
+        return;
+      }
+      // validate start/end ranges
+      if (start < START_MIN || start > START_MAX) {
+        const msg = `La hora de inicio debe estar entre ${START_MIN} y ${START_MAX}.`;
+        if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
+        return;
+      }
+      if (end < END_MIN || end > END_MAX) {
+        const msg = `La hora de salida debe estar entre ${END_MIN} y ${END_MAX}.`;
+        if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
+        return;
+      }
+      if (start >= end) {
+        const msg = 'La hora de inicio debe ser anterior a la hora de fin.';
+        if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
+        return;
+      }
+      // validate day range (start must be <= end)
+      if (dayStart > dayEnd) {
+        const msg = 'El día de inicio debe ser anterior o igual al día de fin.';
+        if (window.showToast) window.showToast(msg, { type: 'error' }); else alert(msg);
+        return;
+      }
+      schedules.push({ day_start: dayStart, day_end: dayEnd, start_time: start, end_time: end, active });
+      renderSchedules();
     }
 
     function clearErrors() {
@@ -136,12 +301,10 @@
       const data = {};
       new FormData(form).forEach((v,k) => { data[k] = v; });
 
-      // Validación cliente: campos requeridos y mensajes en español
       function addFieldError(name, message) {
         const field = form.querySelector('[name="' + name + '"]');
         if (!field) return;
         field.setAttribute('aria-invalid', 'true');
-        // remove previous
         field.parentNode.querySelectorAll('.text-sm.text-red-600').forEach(el => el.remove());
         const p = document.createElement('p');
         p.className = 'text-sm text-red-600 mt-1';
@@ -149,17 +312,22 @@
         field.parentNode.appendChild(p);
       }
 
-      // Required checks
       if (!data.name || String(data.name).trim() === '') { addFieldError('name', 'Debes ingresar el nombre.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
       if (!data.last_name_primary || String(data.last_name_primary).trim() === '') { addFieldError('last_name_primary', 'Debes ingresar el apellido paterno.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
       if (!data.phone || String(data.phone).trim() === '') { addFieldError('phone', 'Debes ingresar un teléfono.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
       if (!data.email || String(data.email).trim() === '') { addFieldError('email', 'Debes ingresar un correo electrónico.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
 
-      // Email básico
+      // if schedules array is empty, attempt to use inline inputs (we removed the separate "Agregar" button)
+      pushInlineScheduleIfPresent();
+      if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
+        if (window.showToast) window.showToast('Debes agregar al menos un horario de trabajo para el empleado.', { type: 'error' });
+        if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); }
+        return;
+      }
+
       const emailVal = String(data.email).trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { addFieldError('email', 'Por favor ingresa un correo electrónico válido.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
 
-      // Teléfono solo números
       const phoneVal = String(data.phone).trim();
       if (!/^[0-9]+$/.test(phoneVal)) { addFieldError('phone', 'El teléfono debe contener solo números.'); if (submit) { submit.disabled = false; submit.classList.remove('opacity-70'); } return; }
       data.phone = String(phoneVal);
@@ -169,10 +337,38 @@
       if (tokenInput) headers['X-CSRF-TOKEN'] = tokenInput.value;
 
       try {
-        const method = isEdit ? 'PATCH' : 'POST';
-        const url = isEdit ? apiUrl + '/' + encodeURIComponent(editId) : apiUrl;
+  const method = isEdit ? 'PATCH' : 'POST';
+  const url = isEdit ? apiUrl + '/' + encodeURIComponent(editId) : apiUrl;
 
-        const res = await fetch(url, { method: method, headers: headers, body: JSON.stringify(data), credentials: 'same-origin' });
+      // include schedules in payload (mandatory)
+  // If we're editing and the user changed the inline selects, make sure those values are applied
+  // to the first schedule in memory (the form UI edits the selects but schedules[] isn't automatically updated).
+  try {
+    if (schedules.length > 0) {
+      const curDayStart = parseInt(schedDayStart.value, 10);
+      const curDayEnd = parseInt(schedDayEnd.value, 10);
+      const curStart = schedStart.value;
+      const curEnd = schedEnd.value;
+      // update first schedule with current selects (keeps other schedules untouched)
+      schedules[0].day_start = curDayStart;
+      schedules[0].day_end = curDayEnd;
+      schedules[0].start_time = curStart;
+      schedules[0].end_time = curEnd;
+    }
+  } catch (e) {
+    // ignore if selects not present
+  }
+
+  // map local schedule objects to API field names expected by controller
+  data.schedules = schedules.map(s => ({
+    day_of_week_start: typeof s.day_start !== 'undefined' ? s.day_start : (typeof s.day_of_week_start !== 'undefined' ? s.day_of_week_start : (typeof s.day_of_week !== 'undefined' ? s.day_of_week : null)),
+    day_of_week_end: typeof s.day_end !== 'undefined' ? s.day_end : (typeof s.day_of_week_end !== 'undefined' ? s.day_of_week_end : (typeof s.day_of_week !== 'undefined' ? s.day_of_week : null)),
+    start_time: s.start_time,
+    end_time: s.end_time,
+    active: s.active
+  }));
+
+  const res = await fetch(url, { method: method, headers: headers, body: JSON.stringify(data), credentials: 'same-origin' });
 
         if (res.status === 201 || res.status === 200) {
           if (window.showToast) window.showToast(isEdit ? 'Empleado actualizado' : 'Empleado creado correctamente', { type: 'success' });

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\enums\SpeciesEnum;
 use App\Models\enums\SexEnum;
+use App\Models\enums\SizeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -20,13 +21,17 @@ class Pet extends Model
         'sex',
         'photo_url',
         'breed_id',
-        'client_id'
+        'client_id',
+        'size',
+        'weight'
     ];
 
     protected $casts = [
         'species' => SpeciesEnum::class,
         'sex' => SexEnum::class,
-        'birth_date' => 'date'
+        'birth_date' => 'date',
+        'size' => SizeEnum::class,
+        'weight' => 'decimal:2',
     ];
 
     public function client()
@@ -39,14 +44,17 @@ class Pet extends Model
         return $this->belongsTo(Breed::class);
     }
 
-    public function setNameAttribute($value) {
+    public function setNameAttribute($value)
+    {
         $this->attributes['name'] = strtoupper($value);
     }
 
-    /**
-     * Accessor: return a full public URL for photo_url.
-     * We store the relative disk path in the DB (e.g. "images/pets/xxx.png").
-     */
+    public function setWeightAttribute($value)
+    {
+        $this->attributes['weight'] = $value === null ? null : number_format((float)$value, 2, '.', '');
+    }
+
+
     public function getPhotoUrlAttribute($value)
     {
         if (empty($value)) {
