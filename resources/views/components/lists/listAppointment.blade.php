@@ -59,6 +59,10 @@
 	}
 @endphp
 
+@php
+	// Note: action visibility for roles is handled client-side via data-role attributes
+@endphp
+
 <div id="appointments-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 	@if($appointments->isEmpty())
 		<div class="text-sm text-gray-500">No hay citas programadas</div>
@@ -102,14 +106,15 @@
 						</div>
 
 						<div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+							{{-- Reagendar: visible to receptionist and admin (client-side) --}}
 							@if((($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
-							<a href="{{ url('/dashboard/citas/create') }}?reschedule={{ $a->id }}" data-id="{{ $a->id }}" class="flex items-center justify-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150" data-nav>
+							<a href="{{ url('/dashboard/citas/create') }}?reschedule={{ $a->id }}" data-id="{{ $a->id }}" data-role="receptionist,admin" class="flex items-center justify-center px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50 shadow-sm transition-colors duration-150" data-nav>
 								<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-gray-100 rounded-full"><img src="/icons/edit.svg" alt="Reagendar" class="w-3 h-3" /></span>
 								Reagendar cita
 							</a>
 							@endif
 
-							{{-- Completar cita button (hidden when already completed or canceled) --}}
+							{{-- Completar cita: available for allowed statuses (veterinarians will primarily use this) --}}
 							@if((($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value) && (($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
 							<div class="flex items-center justify-center">
 								<button type="button" class="btn-complete flex items-center justify-center px-3 py-2 bg-white border border-green-100 rounded-md text-sm hover:bg-green-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
@@ -119,10 +124,10 @@
 							</div>
 							@endif
 
-							{{-- Cancelar in right column (hidden if already canceled) --}}
+							{{-- Cancelar: visible to receptionist and admin (client-side) --}}
 							@if((($st ?? '') !== \App\Models\enums\StatusEnum::CANCELADA->value) && (($st ?? '') !== \App\Models\enums\StatusEnum::COMPLETED->value))
 							<div class="flex items-center justify-center">
-								<button type="button" class="btn-cancel flex items-center justify-center px-3 py-2 bg-white border border-red-100 rounded-md text-sm hover:bg-red-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
+								<button type="button" data-role="receptionist,admin" class="btn-cancel flex items-center justify-center px-3 py-2 bg-white border border-red-100 rounded-md text-sm hover:bg-red-50 shadow-sm transition-colors duration-150" data-id="{{ $a->id }}">
 									<span class="inline-flex w-7 h-7 mr-2 items-center justify-center bg-red-100 rounded-full"><img src="/icons/trash.svg" alt="Cancelar" class="w-3 h-3" /></span>
 									<span class="text-red-700 font-medium">Cancelar cita</span>
 								</button>
