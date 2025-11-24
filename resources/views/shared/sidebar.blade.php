@@ -16,7 +16,7 @@
           // allowedRoles is optional (comma-separated) — if present it'll become data-role attribute
           $items = [
             // Dashboard only for admins per requested restrictions
-           // ['Dashboard', 'dashboard', 'dashboard.svg', 'admin'],
+           ['Dashboard', 'dashboard', 'dashboard.svg', 'admin'],
             // Clients and Pets visible to receptionist and admin
             ['Clientes', 'clientes', 'clients.svg', 'receptionist,admin'],
             ['Mascotas', 'mascotas', 'pets.svg', 'receptionist,admin'],

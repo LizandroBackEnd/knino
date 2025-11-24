@@ -99,7 +99,7 @@
 						<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M21 21l-6-6"/></svg>
 					@endif
 				</div>
-				<input id="search" name="search" type="search" placeholder="Buscar por nombre del cliente o mascota" class="w-full pl-12 pr-4 py-3 rounded-lg border" style="background: var(--bg-input); border-color: var(--border);">
+				<input id="search" name="search" type="search" placeholder="Buscar por nombre de la mascota" class="w-full pl-12 pr-4 py-3 rounded-lg border" style="background: var(--bg-input); border-color: var(--border);">
 			</div>
 		</div>
 
