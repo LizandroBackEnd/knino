@@ -5,7 +5,7 @@
         <img src="/logos/icon.png" alt="K-NINO" class="w-12 h-12">
         <div>
           <div class="text-sm font-bold" style="font-family: var(--font-title); color: var(--color-primary);">K-NINO</div>
-          <div class="text-xs text-gray-500" style="font-family: var(--font-subtitle);">Admin</div>
+          <div class="text-xs text-gray-500" id="sidebar-username" style="font-family: var(--font-subtitle);">{{ optional(auth()->user())->name ?? 'Invitado' }}</div>
         </div>
       </div>
       <div class="mt-4 border-t border-gray-200"></div>
@@ -16,7 +16,7 @@
           // allowedRoles is optional (comma-separated) — if present it'll become data-role attribute
           $items = [
             // Dashboard only for admins per requested restrictions
-            ['Dashboard', 'dashboard', 'dashboard.svg', 'admin'],
+           // ['Dashboard', 'dashboard', 'dashboard.svg', 'admin'],
             // Clients and Pets visible to receptionist and admin
             ['Clientes', 'clientes', 'clients.svg', 'receptionist,admin'],
             ['Mascotas', 'mascotas', 'pets.svg', 'receptionist,admin'],

@@ -7,12 +7,8 @@
 
     <div class="flex items-center gap-4">
       <div class="text-right">
-        <div class="text-sm font-medium" style="font-family: var(--font-subtitle);">Lizandro Antonio</div>
-        <div class="text-xs text-gray-500" style="font-family: var(--font-subtitle);">Admin</div>
+  <div class="text-sm font-medium" id="header-username" style="font-family: var(--font-subtitle);">{{ optional(auth()->user())->full_name ?? optional(auth()->user())->name ?? 'Invitado' }}</div>
       </div>
-
-      <img src="{{ asset($avatar ?? '/images/user.jpg') }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm">
     </div>
-  
-</header>
+
 </header>
