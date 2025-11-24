@@ -2,6 +2,9 @@
 
 use App\Http\Middleware\Role;
 use Illuminate\Support\Facades\Route;
+use App\Models\Service;
+use App\Models\Client;
+use App\Models\Pet;
 
 // Public Routes
 Route::get('/', function () {
@@ -11,7 +14,12 @@ Route::get('/', function () {
 
 
 Route::get('/dashboard', function () {
-    return view('dashboard.admin');
+    // get counts from database to display on dashboard
+    $servicesCount = Service::count();
+    $clientsCount = Client::count();
+    $petsCount = Pet::count();
+
+    return view('dashboard.admin', compact('servicesCount', 'clientsCount', 'petsCount'));
 })->name('dashboard.home');
 
 

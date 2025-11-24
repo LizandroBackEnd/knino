@@ -5,7 +5,16 @@
         <img src="/logos/icon.png" alt="K-NINO" class="w-12 h-12">
         <div>
           <div class="text-sm font-bold" style="font-family: var(--font-title); color: var(--color-primary);">K-NINO</div>
-          <div class="text-xs text-gray-500" id="sidebar-username" style="font-family: var(--font-subtitle);">{{ optional(auth()->user())->name ?? 'Invitado' }}</div>
+          @php
+            $roleKey = strtolower(optional(auth()->user())->role ?? '');
+            $roleMap = [
+              'admin' => 'Administrador',
+              'receptionist' => 'Recepcionista',
+              'veterinarian' => 'Veterinario',
+            ];
+            $roleLabel = $roleKey && isset($roleMap[$roleKey]) ? $roleMap[$roleKey] : ($roleKey ? ucfirst($roleKey) : 'Sin rol');
+          @endphp
+          <div class="text-xs text-gray-500" id="sidebar-role" style="font-family: var(--font-subtitle);">{{ $roleLabel }}</div>
         </div>
       </div>
       <div class="mt-4 border-t border-gray-200"></div>

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!res.ok) return;
     const user = await res.json();
-    // set header/sidebar username from the API response (if present)
+    // set header username from the API response (if present) and populate sidebar role
     try {
       const name = (function () {
         if (!user) return 'Invitado';
@@ -29,11 +29,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const headerEl = document.getElementById('header-username');
       if (headerEl) headerEl.textContent = name;
-      const sidebarEl = document.getElementById('sidebar-username');
-      if (sidebarEl) sidebarEl.textContent = name;
     } catch (e) { console.warn('role-ui: could not set username', e); }
 
     const role = user && user.role ? String(user.role).toLowerCase() : '';
+    try {
+      // map role keys to Spanish labels for display, keep `role` variable (english) for permission checks
+      const roleLabels = {
+        admin: 'Administrador',
+        receptionist: 'Recepcionista',
+        veterinarian: 'Veterinario'
+      };
+      const sidebarRoleEl = document.getElementById('sidebar-role');
+      if (sidebarRoleEl) {
+        const formatted = role ? (roleLabels[role] || (role.charAt(0).toUpperCase() + role.slice(1))) : 'Sin rol';
+        sidebarRoleEl.textContent = formatted;
+      }
+    } catch (e) { console.warn('role-ui: could not set sidebar role', e); }
     // reveal elements whose data-role list includes the current role
     document.querySelectorAll('[data-role]').forEach(el => {
       try {
